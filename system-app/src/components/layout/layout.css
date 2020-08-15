@@ -1,0 +1,34 @@
+/* Aside */
+.logo {
+  text-align: center;
+}
+.logo > h2 {
+  color: #fff;
+  line-height: 60px;
+  margin: 0;
+  padding: 0;
+}
+
+/* Header */
+.site-header {
+  height: 60px;
+  background: #fff;
+}
+.trigger-button {
+  font-size: 18px;
+  line-height: 64px;
+  padding: 0 24px;
+  cursor: pointer;
+  transition: color 0.3s;
+}
+.trigger-button:hover {
+  color: #1890ff;
+}
+
+/* Content */
+.site-content-background {
+  background: #fff;
+  padding: 24px;
+  margin: 0 0 25px;
+}
+

@@ -1,0 +1,29 @@
+import Network from '@/api'
+
+export const findUserCourses = params => {
+  return Network.get(`/course/user`, params)
+}
+
+export const findCourseById = courseId => {
+  return Network.get(`/course/id/${courseId}`)
+}
+
+export const addCourse = params => {
+  return Network.post('/course/new', params)
+}
+
+export const closeCourse = courseId => {
+  return Network.delete(`/course/${courseId}`)
+}
+
+export const joinCourse = code => {
+  return Network.put(`/course/invitation/${code}`)
+}
+
+export const findAllTerms = () => {
+  return Network.get('/term/all')
+}
+
+export const addTerm = params => {
+  return Network.post('/term/new', params)
+}
