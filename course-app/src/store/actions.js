@@ -1,4 +1,4 @@
-import { UPDATE_USER, UPDATE_COURSE } from './mutations'
+import { UPDATE_USER, UPDATE_COURSE, UPDATE_LEARNING } from './mutations'
 
 import { currentUser } from '@/api/auth'
 import { findCourseById } from '@/api/course'
@@ -17,6 +17,9 @@ const actions = {
         const data = response.data
         commit(UPDATE_COURSE, data.payload)
       })
+  },
+  updateLearning({ commit }, learning) {
+    commit(UPDATE_LEARNING, learning)
   }
 }
 

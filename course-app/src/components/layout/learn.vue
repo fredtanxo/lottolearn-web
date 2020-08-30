@@ -46,12 +46,17 @@ export default {
   },
   computed: mapState({
     courseName: state => state.course.name,
-    isTeacher: state => state.course.teacherId === state.user.id
+    isTeacher: state => state.course.teacherId === state.user.id,
+    learning: state => state.learning
   }),
   methods: {
     ...mapActions(['updateCourse']),
     goBack() {
-      this.$router.push('/course');
+      if (this.learning) {
+        this.$router.back()
+      } else {
+        this.$router.push('/course')
+      }
     }
   },
   mounted() {

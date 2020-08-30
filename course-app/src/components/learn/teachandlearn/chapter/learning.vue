@@ -63,7 +63,7 @@ import shaka from 'shaka-player/dist/shaka-player.ui'
 import FilesView from '@/components/common/files'
 
 import { findChapterMedia } from '@/api/resource'
-import { mapState } from 'vuex'
+import { mapState, mapActions } from 'vuex'
 
 export default {
   components: {
@@ -89,6 +89,7 @@ export default {
     isTeacher: state => state.course.teacherId === state.user.id
   }),
   methods: {
+    ...mapActions(['updateLearning']),
     afterLinkSuccess() {
       this.dialogTableVisible = false
       this.refreshChapterMedia()
@@ -137,6 +138,7 @@ export default {
   },
   mounted() {
     this.refreshChapterMedia()
+    this.updateLearning(true)
   },
   updated() {
     if (this.hasMedia && !this.player) {
@@ -147,6 +149,7 @@ export default {
     if (this.player) {
       this.player.destroy()
     }
+    this.updateLearning(false)
   }
 }
 </script>
