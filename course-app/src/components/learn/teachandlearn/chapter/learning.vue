@@ -50,7 +50,7 @@
         <files-view
           :mode="2"
           :chapterId="chapterId"
-          :endpoint="`https://storage.lottolearn.com/file/course/${this.courseId}/chapter/${this.chapterId}`">
+          :endpoint="`https://storage.lottolearn.com/files/upload`">
         </files-view>
       </el-drawer>
     </div>
@@ -123,7 +123,7 @@ export default {
       findChapterMedia(this.chapterId)
         .then(response => {
           const data = response.data
-          if (data.payload.length !== 0) {
+          if (data.payload && data.payload.length !== 0) {
             this.mediaSrc = data.payload.accessUrl
             this.initPlayer()
           }

@@ -61,10 +61,11 @@ import { Uppy } from '@uppy/core'
 import Dashboard from '@uppy/dashboard'
 import Webcam from '@uppy/webcam'
 import ScreenCapture from '@uppy/screen-capture'
-import XHRUpload from '@uppy/xhr-upload'
+// import XHRUpload from '@uppy/xhr-upload'
+import Tus from '@uppy/tus';
 import CnLocale from '@uppy/locales/lib/zh_CN'
 
-import Cookies from 'js-cookie'
+// import Cookies from 'js-cookie'
 
 import { findChapterFiles, findResourceItems } from '@/api/resource'
 
@@ -124,13 +125,13 @@ export default {
     }
 
     let restrictions = {
-      maxFileSize: 2 * 1024 * 1024 * 1024 // Bytes
+      maxFileSize: 4 * 1024 * 1024 * 1024 // Bytes
     }
 
     if (this.mode === 0) {
       restrictions = {
         ...restrictions,
-        allowedFileTypes: ['video/mp4']
+        allowedFileTypes: ['video/*']
       }
     }
 
@@ -155,10 +156,17 @@ export default {
     })
     .use(Webcam, { target: Dashboard, locale: CnLocale })
     .use(ScreenCapture, { target: Dashboard, locale: CnLocale })
-    .use(XHRUpload, {
+    // .use(XHRUpload, {
+    //   endpoint: this.endpoint,
+    //   headers: {
+    //     Authorization: `Bearer ${Cookies.get('token')}`
+    //   }
+    // })
+    .use(Tus, {
       endpoint: this.endpoint,
       headers: {
-        Authorization: `Bearer ${Cookies.get('token')}`
+        Authorization: `Bearer ${sessionStorage.getItem('token')}`,
+        ['App-Data']: `courseId=${this.courseId},chapterId=${this.chapterId}`
       }
     })
     uppy.on('upload-success', () => this.refresh())

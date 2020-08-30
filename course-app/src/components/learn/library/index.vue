@@ -1,7 +1,7 @@
 <template>
   <files-view
     :mode="0"
-    :endpoint="`https://storage.lottolearn.com/media/course/${this.courseId}`">
+    :endpoint="`https://storage.lottolearn.com/media/upload`">
   </files-view>
 </template>
 

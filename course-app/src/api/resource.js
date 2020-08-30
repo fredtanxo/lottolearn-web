@@ -9,5 +9,5 @@ export const findChapterMedia = chapterId => {
 }
 
 export const findResourceItems = courseId => {
-  return Network.get(`/library/course/${courseId}`)
+  return Network.get(`/library/media/course/${courseId}`)
 }
