@@ -11,3 +11,7 @@ export const findChapterMedia = chapterId => {
 export const findResourceItems = courseId => {
   return Network.get(`/library/media/course/${courseId}`)
 }
+
+export const linkChapterResource = (chapterId, resourceId) => {
+  return Network.put(`/resource/link/chapter/${chapterId}/resource/${resourceId}`)
+}

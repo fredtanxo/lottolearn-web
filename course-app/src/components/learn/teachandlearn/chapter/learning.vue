@@ -27,16 +27,15 @@
         选择章节视频
       </el-button>
       <el-dialog 
+        width="80vw"
         title="选择视频资源"
         :visible.sync="dialogTableVisible"
         destroy-on-close>
-        <button id="upload-trigger-media" style="display: none;"></button>
-        <div id="upload-target-media"></div>
-        <el-table :data="libraryData">
-          <el-table-column property="date" label="日期" width="150"></el-table-column>
-          <el-table-column property="name" label="姓名" width="200"></el-table-column>
-          <el-table-column property="address" label="地址"></el-table-column>
-        </el-table>
+        <files-view
+          :mode="1"
+          :chapterId="chapterId"
+          :callback="afterLinkSuccess">
+        </files-view>
       </el-dialog>
       <el-button @click="handleViewChapterFiles">
         章节文件
@@ -90,6 +89,10 @@ export default {
     isTeacher: state => state.course.teacherId === state.user.id
   }),
   methods: {
+    afterLinkSuccess() {
+      this.dialogTableVisible = false
+      this.refreshChapterMedia()
+    },
     initPlayer() {
       const video = this.$refs.video
       const videoContainer = this.$refs.cvideo
@@ -114,7 +117,7 @@ export default {
     },
     playerErrorHandler(error) {
       this.$message.error('播放器出现错误，请重试')
-      console.log(error)
+      console.error(error)
     },
     handleViewChapterFiles() {
       this.filesDrawer = true
@@ -123,9 +126,9 @@ export default {
       findChapterMedia(this.chapterId)
         .then(response => {
           const data = response.data
-          if (data.payload && data.payload.length !== 0) {
+          if (data.payload) {
             this.mediaSrc = data.payload.accessUrl
-            this.initPlayer()
+            this.hasMedia = true
           }
         })
         .catch(() => this.$message.error('无法获取章节媒体'))
@@ -134,6 +137,11 @@ export default {
   },
   mounted() {
     this.refreshChapterMedia()
+  },
+  updated() {
+    if (this.hasMedia && !this.player) {
+      this.initPlayer()
+    }
   },
   beforeDestroy() {
     if (this.player) {
@@ -154,10 +162,14 @@ export default {
 .chapter-media {
   display: flex;
   justify-content: space-around;
+  margin: 0 auto;
+  max-width: 75vw;
+  width: max-content;
 }
 .chapter-video {
   width: 100%;
   height: 100%;
+  max-height: 75vh;
 }
 .el-drawer {
   overflow-y: scroll;

@@ -43,6 +43,14 @@
         align="center">
         <template slot-scope="scope">
           <el-link
+            v-if="mode === 1"
+            type="primary"
+            @click="handleLink(scope.row.id)"
+            :disabled="!(scope.row.status === 1 || scope.row.status === 2)">
+            选择
+          </el-link>
+          <el-link
+            v-else
             :href="scope.row.accessUrl"
             target="_blank"
             type="primary">
@@ -61,19 +69,21 @@ import { Uppy } from '@uppy/core'
 import Dashboard from '@uppy/dashboard'
 import Webcam from '@uppy/webcam'
 import ScreenCapture from '@uppy/screen-capture'
-// import XHRUpload from '@uppy/xhr-upload'
 import Tus from '@uppy/tus';
 import CnLocale from '@uppy/locales/lib/zh_CN'
 
-// import Cookies from 'js-cookie'
-
-import { findChapterFiles, findResourceItems } from '@/api/resource'
+import {
+  findChapterFiles,
+  findResourceItems,
+  linkChapterResource
+} from '@/api/resource'
 
 export default {
   props: {
     mode: Number, // 0: 资源库， 1: 章节媒体， 2:章节文件
     chapterId: String,
-    endpoint: String
+    endpoint: String,
+    callback: Function
   },
   data() {
     return {
@@ -105,6 +115,16 @@ export default {
         })
         .catch(() => this.$message.error('无法获取文件'))
         .finally(() => this.filesLoading = false)
+    },
+    handleLink(resourceId) {
+      linkChapterResource(this.chapterId, resourceId)
+        .then(response => {
+          const data = response.data
+          if (data.code === 200) {
+            this.callback()
+          }
+        })
+        .catch(() => this.$message.error('选择失败'))
     },
     refresh() {
       switch (this.mode) {
@@ -156,12 +176,6 @@ export default {
     })
     .use(Webcam, { target: Dashboard, locale: CnLocale })
     .use(ScreenCapture, { target: Dashboard, locale: CnLocale })
-    // .use(XHRUpload, {
-    //   endpoint: this.endpoint,
-    //   headers: {
-    //     Authorization: `Bearer ${Cookies.get('token')}`
-    //   }
-    // })
     .use(Tus, {
       endpoint: this.endpoint,
       headers: {
