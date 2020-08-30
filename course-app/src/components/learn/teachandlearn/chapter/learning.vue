@@ -169,7 +169,6 @@ export default {
 .chapter-video {
   width: 100%;
   height: 100%;
-  max-height: 75vh;
 }
 .el-drawer {
   overflow-y: scroll;
