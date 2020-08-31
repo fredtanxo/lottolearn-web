@@ -39,7 +39,7 @@
       </el-table-column>
       <el-table-column
         label="操作"
-        width="100"
+        width="110"
         align="center">
         <template slot-scope="scope">
           <el-link
@@ -51,10 +51,10 @@
           </el-link>
           <el-link
             v-else
-            :href="scope.row.accessUrl"
-            target="_blank"
+            :disabled="scope.row.downloading !== undefined"
+            @click="handleDownloadFile(scope.row)"
             type="primary">
-            下载
+            {{ scope.row.downloading ? `${Number(scope.row.downloading * 100).toFixed(2)} %` : '下载'}}
           </el-link>
         </template>
       </el-table-column>
@@ -125,6 +125,58 @@ export default {
           }
         })
         .catch(() => this.$message.error('选择失败'))
+    },
+    // 文件下载
+    handleDownloadFile(row) {
+      const that = this
+      let total = 0
+      let downloaded = 0
+      this.$set(row, 'downloading', 0)
+      fetch(row.accessUrl, {
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${sessionStorage.getItem('token')}`
+        }
+      })
+      .then(response => {
+        if (!response.ok) {
+          this.$message.error('下载失败')
+        }
+        total = Number.parseInt(response.headers.get('Content-Length'))
+        return response.body
+      })
+      .then(body => {
+        const reader = body.getReader()
+        return new ReadableStream({
+          async start(controller) {
+            while (true) {
+              const { done, value } = await reader.read()
+              if (done) {
+                break
+              }
+              downloaded += value.length
+              that.$set(row, 'downloading', downloaded / total)
+              controller.enqueue(value)
+            }
+            controller.close()
+            reader.releaseLock()
+          }
+        })
+      })
+      .then(stream => new Response(stream))
+      .then(response => response.blob())
+      .then(data => {
+        const t = document.createElement('a')
+        t.download = row.name
+        t.href = URL.createObjectURL(data)
+        t.click()
+        URL.revokeObjectURL(data)
+        this.$set(row, 'downloading', undefined)
+      })
+      .catch(() => {
+        this.$message.error('下载失败')
+        this.$set(row, 'downloading', undefined)
+      })
     },
     refresh() {
       switch (this.mode) {

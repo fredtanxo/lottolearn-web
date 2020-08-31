@@ -41,7 +41,7 @@
         章节文件
       </el-button>
       <el-drawer
-        size="50%"
+        size="70%"
         :visible.sync="filesDrawer"
         :with-header="false"
         :chapterId="chapterId"
