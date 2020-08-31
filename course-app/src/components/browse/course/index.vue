@@ -104,7 +104,7 @@ export default {
       list: [],
       total: 0,
       query: {
-        page: 0,
+        page: 1,
         size: 12,
         teacher: '',
         status: '1'
