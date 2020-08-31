@@ -45,7 +45,7 @@ export default {
     }
   },
   computed: mapState({
-    courseName: state => state.course.name,
+    courseName: state => state.learning ? state.learning : state.course.name,
     isTeacher: state => state.course.teacherId === state.user.id,
     learning: state => state.learning
   }),

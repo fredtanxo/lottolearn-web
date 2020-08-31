@@ -138,7 +138,6 @@ export default {
   },
   mounted() {
     this.refreshChapterMedia()
-    this.updateLearning(true)
   },
   updated() {
     if (this.hasMedia && !this.player) {
@@ -149,7 +148,7 @@ export default {
     if (this.player) {
       this.player.destroy()
     }
-    this.updateLearning(false)
+    this.updateLearning(undefined)
   }
 }
 </script>

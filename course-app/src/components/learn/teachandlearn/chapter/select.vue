@@ -7,7 +7,7 @@
         v-for="chapter in chapters" :key="chapter.id">
         <div
           class="chapter-item-wrapper"
-          @click="handleLearnChapter(chapter.id)">
+          @click="handleLearnChapter(chapter.id, chapter.name)">
           <el-card shadow="hover">
             <div slot="header">
               <span style="font-weight: bold;">{{ chapter.name }}</span>
@@ -73,7 +73,7 @@
 </template>
 
 <script>
-import { mapState } from 'vuex'
+import { mapState, mapActions } from 'vuex'
 
 import { findCourseChapters, addChapter } from '@/api/learn'
 
@@ -109,6 +109,7 @@ export default {
     nickname: state => state.user.nickname
   }),
   methods: {
+    ...mapActions(['updateLearning']),
     queryCourseChapters() {
       findCourseChapters(this.courseId, this.query)
         .then(response => {
@@ -117,7 +118,8 @@ export default {
         })
         .catch(() => this.$message.error('无法加载章节信息'))
     },
-    handleLearnChapter(chapterId) {
+    handleLearnChapter(chapterId, chapterName) {
+      this.updateLearning(chapterName)
       this.$router.push(`/learn/${this.courseId}/teach-and-learn/chapter/learning/${chapterId}`)
     },
     handleAddChapter() {
