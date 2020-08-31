@@ -27,3 +27,11 @@ export const findAllTerms = () => {
 export const addTerm = params => {
   return Network.post('/term/new', params)
 }
+
+export const findCourseSigns = params => {
+  return Network.get('/course/sign', params)
+}
+
+export const findCourseSignRecord = (courseId, signId) => {
+  return Network.get(`/course/sign/${signId}/records?courseId=${courseId}`)
+}

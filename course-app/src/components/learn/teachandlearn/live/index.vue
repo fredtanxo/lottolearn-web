@@ -16,12 +16,25 @@
         开始直播
       </el-button>
       <el-button
+        v-if="isTeacher"
+        size="medium"
+        @click="courseSignDialog = true">
+        签到记录
+      </el-button>
+      <el-button
         v-else
         type="primary"
         size="medium"
         @click="handleRefresh">
         刷新
       </el-button>
+      <el-dialog 
+        width="80vw"
+        top="3vh"
+        :visible.sync="courseSignDialog"
+        destroy-on-close>
+        <sign></sign>
+      </el-dialog>
     </div>
     <stream v-if="live" />
     <chat v-if="live" />
@@ -46,9 +59,12 @@
 </template>
 
 <script>
+import Sign from './sign'
+
 import { mapState, mapActions } from 'vuex'
 
 import { UPDATE_COURSE } from '@/store/mutations'
+
 import { requestLiveCourse, requestLiveCourseEnd } from '@/api/learn'
 
 import Chat from './chat'
@@ -57,10 +73,12 @@ import Stream from './stream'
 export default {
   components: {
     Chat,
-    Stream
+    Stream,
+    Sign
   },
   data() {
     return {
+      courseSignDialog: false,
       courseId: this.$route.params.courseId,
       loading: true,
       down: false
@@ -103,12 +121,7 @@ export default {
 </script>
 
 <style>
-.live-container{
-  min-height: 78vh;
-}
 .no-live {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+  text-align: center;
 }
 </style>
