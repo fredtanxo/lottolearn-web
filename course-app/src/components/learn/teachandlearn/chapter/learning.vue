@@ -80,7 +80,7 @@ export default {
       player: null,
       ui: null,
       controls: null,
-      mediaSrc: '',
+      mediaSrc: null,
       teacher: true,
       filesDrawer: false
     }
@@ -88,6 +88,14 @@ export default {
   computed: mapState({
     isTeacher: state => state.course.teacherId === state.user.id
   }),
+  watch: {
+    mediaSrc(val) {
+      if (this.player && val) {
+        this.player.getMediaElement().pause()
+        this.player.load(val)
+      }
+    }
+  },
   methods: {
     ...mapActions(['updateLearning']),
     afterLinkSuccess() {
