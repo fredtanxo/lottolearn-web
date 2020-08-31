@@ -29,7 +29,7 @@ const AppLayout = ({ children, menuKey, auth }) => {
   const requestLogout = () => {
     Cookies.remove('token', { path: '/', domain: 'lottolearn.com' });
     sessionStorage.removeItem('token');
-    location.href = '/';
+    window.location.href = '/';
   };
 
   const menu = (

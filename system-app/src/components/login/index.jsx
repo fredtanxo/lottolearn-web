@@ -24,7 +24,7 @@ export default () => {
         const authHeader = response.headers['authorization'];
         const jwt = authHeader.substr("Bearer ".length);
         Cookies.set('token', jwt, { path: '/', domain: 'lottolearn.com' });
-        location.href = '/';
+        window.location.href = '/';
       }
     })
     .catch(error => {

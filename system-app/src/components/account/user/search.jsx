@@ -15,6 +15,7 @@ const UserSearch = ({ findAllUsers, startAddUser }) => {
         form={form}
         layout="inline"
         onFinish={params => findAllUsers(params)}
+        /* eslint-disable no-useless-computed-key */
         initialValues={{ ['status']: '' }}
       >
         <Row style={{ width: '100%' }}>
