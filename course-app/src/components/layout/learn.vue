@@ -38,6 +38,11 @@ export default {
   components: {
     BasicFramework
   },
+  watch: {
+    $route(val) {
+      this.activeMenu = `/learn/${this.courseId}/${val.matched[1].name}`
+    }
+  },
   data() {
     return {
       courseId: this.$route.params.courseId,

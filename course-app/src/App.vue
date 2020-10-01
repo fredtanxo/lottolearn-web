@@ -1,5 +1,7 @@
 <template>
-  <router-view></router-view>
+  <keep-alive include="browse">
+    <router-view></router-view>
+  </keep-alive>
 </template>
 
 <script>

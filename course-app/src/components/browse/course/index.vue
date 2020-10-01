@@ -138,7 +138,7 @@ export default {
   },
   mounted() {
     this.queryCourseList()
-  },
+  }
 }
 </script>
 

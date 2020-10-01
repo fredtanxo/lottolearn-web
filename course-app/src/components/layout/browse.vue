@@ -21,8 +21,14 @@
 import BasicFramework from './index'
 
 export default {
+  name: 'browse',
   components: {
     BasicFramework
+  },
+  watch: {
+    $route(val) {
+      this.activeMenu = val.path.substring(1)
+    }
   },
   data() {
     return {
