@@ -25,8 +25,14 @@
       </el-col>
     </el-row>
     <el-row
+      style="min-height: 200px;"
       :gutter="25"
       v-loading="loading">
+      <div
+        class="no-course"
+        v-if="!loading && (!list || list.length == 0)">
+        没有课程
+      </div>
       <el-col
         style="padding-top: 20px;"
         :sm="12"
@@ -61,7 +67,7 @@
       </el-col>
     </el-row>
 
-    <div style="margin: 15px 0; text-align: right;">
+    <div style="margin: 15px 0;">
       <el-pagination
         background
         layout="prev, pager, next"
@@ -104,7 +110,7 @@ export default {
       list: [],
       total: 0,
       query: {
-        page: 1,
+        page: 0,
         size: 12,
         teacher: '',
         status: '1'
@@ -113,17 +119,18 @@ export default {
   },
   methods: {
     queryCourseList() {
+      this.loading = true
       CourseApi.findUserCourses(this.query)
         .then(response => {
           const data = response.data
           this.total = data.payload.total
           this.list = data.payload.data
         })
-        .catch(() => this.$message.error('无法加载课程信息'))
+        .catch(() => this.$message.error('无法获取课程列表'))
         .finally(() => this.loading = false)
     },
     handlePageChange(page) {
-      this.query.page = page
+      this.query.page = page - 1
       this.queryCourseList()
     },
     handleLearn(courseId) {
@@ -148,6 +155,12 @@ export default {
 }
 .course-detail-item > span {
   margin-left: 10px;
+}
+.no-course {
+  height: 200px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .course-info {

@@ -111,7 +111,7 @@ export default {
       },
       peerConsumers: new Map(), // (peerId, Set(consumer))
       page: 0,
-      size: 1
+      size: 9
     }
   },
   computed: {

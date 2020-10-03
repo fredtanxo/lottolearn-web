@@ -209,7 +209,6 @@ export default {
     }
 
     const uppy = new Uppy({
-      debug: true,
       autoProceed: false,
       inline: true,
       replaceTargetContent: true,

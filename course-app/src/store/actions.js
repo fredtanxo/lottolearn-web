@@ -1,6 +1,6 @@
 import { UPDATE_USER, UPDATE_COURSE, UPDATE_LEARNING } from './mutations'
 
-import { currentUser } from '@/api/auth'
+import { currentUser } from '@/api/user'
 import { findCourseById } from '@/api/course'
 
 const actions = {

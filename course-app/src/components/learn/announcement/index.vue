@@ -39,7 +39,6 @@
     <el-row :gutter="20">
       <el-col
         style="padding-bottom: 20px"
-        :md="24" :lg="12"
         v-for="announcement in announcements"
         :key="announcement.id"
       >
@@ -57,6 +56,17 @@
         </el-card>
       </el-col>
     </el-row>
+    <div
+      v-if="announcements.length !== 0"
+      style="text-align: center;">
+      <el-button
+        type="primary"
+        plain
+        @click="handleMore"
+        :disabled="!more">
+        {{ more ? '更多' : '已全部加载' }}
+      </el-button>
+    </div>
     <el-button
       class="add-button"
       :style="`display: ${this.isTeacher ? 'block' : 'none'};`"
@@ -79,6 +89,7 @@
           prop="title">
           <el-input
             v-model="announcementAdd.title"
+            autofocus
             placeholder="请输入标题">
           </el-input>
         </el-form-item>
@@ -119,9 +130,10 @@ export default {
       courseId: this.$route.params.courseId,
       total: 0,
       announcements: [],
+      more: true,
       query: {
         page: 0,
-        size: 20
+        size: 1
       },
       announcementAdd: {
         title: '',
@@ -148,8 +160,12 @@ export default {
         .then(response => {
           const data = response.data
           this.total = data.payload.total
-          this.announcements = data.payload.data
+          this.announcements = this.announcements.concat(data.payload.data)
+          if (this.announcements.length == this.total) {
+            this.more = false
+          }
         })
+        .catch(() => this.$message.error('没有加入该课程'))
     },
     handleAddAnnouncement() {
       this.dialog = true
@@ -165,6 +181,7 @@ export default {
           .then(() => {
             this.dialog = false
             this.$message.success('发布成功')
+            this.query.page++
             this.queryCourseAnnouncements()
             this.$refs.formAnnouncement.resetFields()
           })
@@ -178,6 +195,10 @@ export default {
         .then(() => this.$message.success('关闭成功'))
         .catch(() => this.$message.error('关闭失败'))
       
+    },
+    handleMore() {
+      this.query.page++
+      this.queryCourseAnnouncements()
     }
   },
   mounted() {

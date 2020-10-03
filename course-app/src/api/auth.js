@@ -11,7 +11,3 @@ export const refresh = () => {
 export const logout = () => {
   return Network.delete('/auth/logout')
 }
-
-export const currentUser = () => {
-  return Network.get('/user/current')
-}

@@ -321,6 +321,7 @@ export default {
     }
   },
   beforeDestroy() {
+    this.chatRef.removeEventListener('scroll', this.handleScroll)
     if (this.chatSubscription) {
       this.chatSubscription.unsubscribe()
     }

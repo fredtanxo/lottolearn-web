@@ -1,6 +1,14 @@
 <template>
   <div>
-    <el-row :gutter="10">
+    <el-row
+      style="min-height: 200px;"
+      :gutter="10"
+      v-loading="loading">
+      <div
+        class="no-chapter"
+        v-if="!loading && (!chapters || chapters.length == 0)">
+        没有章节
+      </div>
       <el-col
         :sm="24"
         :md="12"
@@ -10,7 +18,9 @@
           @click="handleLearnChapter(chapter.id, chapter.name)">
           <el-card shadow="hover">
             <div slot="header">
-              <span style="font-weight: bold;">{{ chapter.name }}</span>
+              <span style="font-weight: bold; line-height: 1em;">
+                {{ chapter.name }}
+              </span>
             </div>
             <div class="chapter-detail-item">
               <i class="el-icon-time"></i>
@@ -24,6 +34,16 @@
         </div>
       </el-col>
     </el-row>
+    <div>
+      <el-pagination
+        background
+        layout="prev, pager, next"
+        :page-size="query.size"
+        :total="total"
+        @current-change="handlePageChange"
+        hide-on-single-page>
+      </el-pagination>
+    </div>
     <el-button
       class="add-button"
       :style="`display: ${this.isTeacher ? 'block' : 'none'};`"
@@ -47,6 +67,7 @@
           prop="name">
           <el-input
             v-model="chapterAdd.name"
+            autofocus
             placeholder="请输入章节名称">
           </el-input>
         </el-form-item>
@@ -63,7 +84,7 @@
       <div style="padding-top: 10px; text-align: center;">
         <el-button
           type="primary"
-          :loading="loading"
+          :loading="submiting"
           @click="handleChapterSubmit">
           发布
         </el-button>
@@ -78,16 +99,19 @@ import { mapState, mapActions } from 'vuex'
 import { findCourseChapters, addChapter } from '@/api/learn'
 
 export default {
+  name: 'select',
   data() {
     return {
       courseId: this.$route.params.courseId,
       dialog: false,
-      loading: false,
+      loading: true,
+      submiting: false,
       activeChapter: '',
       chapters: [],
+      total: 0,
       query: {
         page: 0,
-        size: 10
+        size: 8
       },
       chapterAdd: {
         name: '',
@@ -111,12 +135,15 @@ export default {
   methods: {
     ...mapActions(['updateLearning']),
     queryCourseChapters() {
+      this.loading = true
       findCourseChapters(this.courseId, this.query)
         .then(response => {
           const data = response.data
           this.chapters = data.payload.data
+          this.total = data.payload.total
         })
         .catch(() => this.$message.error('无法加载章节信息'))
+        .finally(() => this.loading = false)
     },
     handleLearnChapter(chapterId, chapterName) {
       this.updateLearning(chapterName)
@@ -128,7 +155,7 @@ export default {
     handleChapterSubmit() {
       this.$refs.formChapter.validate(valid => {
         if (valid) {
-          this.loading = true
+          this.submiting = true
           addChapter(this.courseId, this.chapterAdd)
             .then(() => {
               this.dialog = false
@@ -137,9 +164,13 @@ export default {
               this.$refs.formChapter.resetFields()
             })
             .catch(() => this.$message.error('发布失败'))
-            .finally(() => this.loading = false)
+            .finally(() => this.submiting = false)
         }
       })
+    },
+    handlePageChange(page) {
+      this.query.page = page - 1
+      this.queryCourseChapters()
     }
   },
   mounted() {
@@ -158,5 +189,11 @@ export default {
 }
 .chapter-detail-item > span {
   margin-left: 10px;
+}
+.no-chapter {
+  height: 200px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 </style>

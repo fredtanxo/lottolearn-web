@@ -21,6 +21,7 @@
             prop="name">
             <el-input
               v-model="formAdd.name"
+              autofocus
               placeholder="请填写课程名称">
             </el-input>
           </el-form-item>
@@ -30,7 +31,8 @@
           <el-form-item label="课程描述">
             <el-input
               type="textarea"
-              v-model="formAdd.description">
+              v-model="formAdd.description"
+              placeholder="描述一下课程内容">
             </el-input>
           </el-form-item>
           <el-form-item
@@ -40,7 +42,8 @@
               <el-option
                 v-for="term in terms"
                 :key="term.id"
-                :label="`${term.name} [${term.termStart} - ${term.termEnd}]`">
+                :label="`${term.name} [${term.termStart} - ${term.termEnd}]`"
+                :value="term.id">
               </el-option>
             </el-select>
             <el-button
@@ -124,6 +127,7 @@
             label="课程邀请码">
             <el-input
               v-model="formJoin.code"
+              autofocus
               placeholder="请输入课程邀请码">
             </el-input>
           </el-form-item>
@@ -227,7 +231,6 @@ export default {
         range: [
           {
             validator: (rule, value, callback) => {
-              console.log('validate;', value)
               if (!value[0] || !value[1]) {
                 callback(new Error('必须提供学期时段'))
               } else {
