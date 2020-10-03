@@ -25,8 +25,21 @@
               placeholder="请填写课程名称">
             </el-input>
           </el-form-item>
-          <el-form-item label="课程封面">
-            <el-input v-model="formAdd.cover"></el-input>
+          <el-form-item label="权限">
+            <el-radio-group
+              v-model="formAdd.visibility"
+              size="small">
+              <el-radio-button :label="false">私密</el-radio-button>
+              <el-radio-button :label="true">公开</el-radio-button>
+            </el-radio-group>
+            <span style="padding: 0 8px;">
+              <el-tooltip
+                effect="dark"
+                content="公开课程意味着其他人可以从「发现」页面加入本课程"
+                placement="top">
+                <i class="el-icon-question"></i>
+              </el-tooltip>
+            </span>
           </el-form-item>
           <el-form-item label="课程描述">
             <el-input
@@ -128,6 +141,7 @@
             <el-input
               v-model="formJoin.code"
               autofocus
+              @keydown.enter.native.prevent="handleJoinCourse"
               placeholder="请输入课程邀请码">
             </el-input>
           </el-form-item>
@@ -200,7 +214,7 @@ export default {
       },
       formAdd: {
         name: '',
-        cover: '',
+        visibility: false,
         description: '',
         termId: '',
         credit: 0
