@@ -4,8 +4,8 @@ export const findAllUsers = params => {
   return Network.get('/user/all', params);
 };
 
-export const findUserById = userId => {
-  return Network.get(`/user/id/${userId}`);
+export const findUserById = (userId, params) => {
+  return Network.get(`/user/id/${userId}`, params);
 };
 
 export const addUser = params => {

@@ -51,7 +51,7 @@ const AppRouter = () => {
           <Storage />
         </AppLayout>
       </PrivateRoute>
-      <PrivateRoute path="/syslog">
+      <PrivateRoute path="/syslogs">
         <AppLayout menuKey={['1', 'syslog']}>
           <SysLog />
         </AppLayout>

@@ -59,7 +59,7 @@ export const startModifyUser = id => {
   return (dispatch, getState, api) => {
     const loading = message.loading('正在获取用户信息');
     // 并行请求
-    const userPromise = api.user.findUserById(id);
+    const userPromise = api.user.findUserById(id, { withRoles: true });
     const rolePromise = api.role.findAllRoles();
     Promise.all([userPromise, rolePromise])
       .then(results => {
@@ -77,12 +77,12 @@ export const startModifyUser = id => {
 export const modifyUser = (id, params) => {
   return (dispatch, getState, api) => {
     api.user.modifyUser(id, params)
-      .then(response => {})
-      .finally(() => {
+      .then(response => {
         message.success('修改成功');
         dispatch(setModifying('', '正在修改', false, {}));
         dispatch(findAllUsers(getState().user.query));
-      });
+      })
+      .catch(error => message.error('修改失败'));
   };
 };
 
