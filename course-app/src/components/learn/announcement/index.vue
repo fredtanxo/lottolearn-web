@@ -1,38 +1,9 @@
 <template>
-  <div>
-    <el-card
-      shadow="hover"
-      class="box-card course-details">
-      <div slot="header">
-        <span style="font-weight: bold;">{{ this.course.name }}</span>
-        <el-popconfirm
-          v-if="isTeacher"
-          title="关闭后其他人将无法加入该课程"
-          confirmButtonText="关闭"
-          iconColor="red"
-          @onConfirm="handleCloseCourse">
-          <el-button
-            slot="reference"
-            style="float: right; padding: 3px 0"
-            type="text">
-            关闭课程
-          </el-button>
-        </el-popconfirm>
-      </div>
-      <div style="line-height: 2em;">
-        <b>课程描述：</b>{{ course.description }}<br />
-        <span v-if="isTeacher">
-          <b>课程邀请码：</b><code>{{ course.code }}</code><br />
-        </span>
-        <b>课程学分：</b>{{ course.credit }}<br />
-        <b>课程发布时间：</b>{{ course.pubDate }}<br />
-      </div>
-    </el-card>
-    <el-divider>
-      <i class="el-icon-receiving"></i>
-    </el-divider>
+  <div
+    style="min-height: 50px;"
+    v-loading="loading">
     <div
-      v-if="announcements.length === 0"
+      v-if="!loading && announcements.length === 0"
       style="text-align: center; margin: 10vh 0;">
       没有公告
     </div>
@@ -61,10 +32,11 @@
       style="text-align: center;">
       <el-button
         type="primary"
+        v-if="announcements.length > 0"
         plain
         @click="handleMore"
         :disabled="!more">
-        {{ more ? '更多' : '已全部加载' }}
+        {{ more ? '上一条' : '已全部加载' }}
       </el-button>
     </div>
     <el-button
@@ -107,7 +79,7 @@
       <div style="padding-top: 10px; text-align: center;">
         <el-button
           type="primary"
-          :loading="loading"
+          :loading="submiting"
           @click="handleAnnouncementSubmit">
           发布
         </el-button>
@@ -126,7 +98,8 @@ export default {
   data() {
     return {
       dialog: false,
-      loading: false,
+      loading: true,
+      submiting: false,
       courseId: this.$route.params.courseId,
       total: 0,
       announcements: [],
@@ -150,12 +123,12 @@ export default {
     }
   },
   computed: mapState({
-    course: state => state.course,
     isTeacher: state => state.course.teacherId === state.user.id,
     nickname: state => state.user.nickname
   }),
   methods: {
     queryCourseAnnouncements() {
+      this.loading = true
       findCourseAnnouncements(this.courseId, this.query)
         .then(response => {
           const data = response.data
@@ -166,6 +139,7 @@ export default {
           }
         })
         .catch(() => this.$message.error('没有加入该课程'))
+        .finally(() => this.loading = false)
     },
     handleAddAnnouncement() {
       this.dialog = true
@@ -173,7 +147,7 @@ export default {
     handleAnnouncementSubmit() {
       this.$refs.formAnnouncement.validate(valid => {
         if (valid) {
-          this.loading = true
+          this.submiting = true
           addAnnouncement(this.courseId, {
             ...this.announcementAdd,
             publisher: this.nickname
@@ -181,20 +155,16 @@ export default {
           .then(() => {
             this.dialog = false
             this.$message.success('发布成功')
-            this.query.page++
+            if (this.query.page > 0) {
+              this.query.page++
+            }
             this.queryCourseAnnouncements()
             this.$refs.formAnnouncement.resetFields()
           })
           .catch(() => this.$message.error('发布失败'))
-          .finally(() => this.loading = false)
+          .finally(() => this.submiting = false)
         }
       })
-    },
-    handleCloseCourse() {
-      closeCourse(this.courseId)
-        .then(() => this.$message.success('关闭成功'))
-        .catch(() => this.$message.error('关闭失败'))
-      
     },
     handleMore() {
       this.query.page++
