@@ -20,6 +20,10 @@ export const requestLiveCourse = courseId => {
   return Network.post(`/course/live/${courseId}`)
 }
 
+export const queryLiveCourse = courseId => {
+  return Network.get(`/course/live/${courseId}`)
+}
+
 export const requestLiveCourseEnd = courseId => {
   return Network.delete(`/course/live/${courseId}`)
 }
