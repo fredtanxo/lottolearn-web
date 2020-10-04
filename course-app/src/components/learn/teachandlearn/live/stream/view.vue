@@ -9,6 +9,7 @@
       class="avatar-wrapper"
       :style="`display: ${!videoActive ? 'block' : 'none'};`">
       <el-avatar
+        class="stream-avatar"
         style="width: 10vmin; height: 10vmin;"
         size="large"
         :src="avatar">
@@ -175,7 +176,7 @@ export default {
   font-size: 14px;
   background-color: rgba(0, 0, 0, 0.5);
 }
-.el-avatar {
+.stream-avatar {
   margin-top: -20px;
 }
 </style>

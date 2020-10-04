@@ -85,6 +85,9 @@ import config from '@/config'
 import VideoView from './view'
 
 export default {
+  props: {
+    roomId: String
+  },
   components: {
     VideoView
   },
@@ -141,7 +144,6 @@ export default {
       return (this.page + 1) * this.size >= total
     },
     ...mapState({
-      roomId: state => state.course.live,
       isTeacher: state => state.course.teacherId === state.user.id,
       user: state => state.user,
       courseId: state => state.course.id
@@ -648,7 +650,6 @@ export default {
     }
   },
   mounted() {
-    console.log('user:', this.user)
     this.serverUrl = `wss://${config.liveBaseUrl}${config.streamBaseUri}?roomId=${this.roomId}&peerId=${this.user.id}`
     const protooTransport = new WebSocketTransport(this.serverUrl)
     this.peer = new Peer(protooTransport)

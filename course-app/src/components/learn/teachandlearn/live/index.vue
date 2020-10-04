@@ -29,20 +29,18 @@
         刷新
       </el-button>
       <el-dialog 
-        width="80vw"
-        top="3vh"
         :visible.sync="courseSignDialog"
         destroy-on-close>
         <sign></sign>
       </el-dialog>
     </div>
-    <stream v-if="live" />
-    <chat v-if="live" />
+    <stream v-if="live" :roomId="live" />
+    <chat v-if="live" :roomId="live" />
     <div style="text-align: center; padding: 48px 0 0;">
       <el-popconfirm
-        v-if="live"
-        title="确定下课？"
-        confirmButtonText="下课"
+        v-if="isTeacher && live"
+        title="确定关闭直播？直播关闭后其他人将无法进入直播间"
+        confirmButtonText="关闭"
         iconColor="red"
         @onConfirm="handleLiveCourseEnd">
         <el-button
@@ -51,7 +49,7 @@
           size="medium"
           plain
           :disabled="down">
-          {{ down ? '已下课' : '下课' }}
+          {{ down ? '直播已关闭' : '关闭直播' }}
         </el-button>
       </el-popconfirm>
     </div>
@@ -61,11 +59,13 @@
 <script>
 import Sign from './sign'
 
-import { mapState, mapActions } from 'vuex'
+import { mapState } from 'vuex'
 
-import { UPDATE_COURSE } from '@/store/mutations'
-
-import { requestLiveCourse, requestLiveCourseEnd } from '@/api/learn'
+import {
+  requestLiveCourse,
+  queryLiveCourse,
+  requestLiveCourseEnd
+} from '@/api/learn'
 
 import Chat from './chat'
 import Stream from './stream'
@@ -81,41 +81,70 @@ export default {
       courseSignDialog: false,
       courseId: this.$route.params.courseId,
       loading: true,
-      down: false
+      live: false,
+      down: false,
+      timer: null
     }
   },
   computed: mapState({
-    live: state => !!state.course.live && !!state.user.id, // 可能出现userId为undefined
     isTeacher: state => state.course.teacherId === state.user.id
   }),
   methods: {
-    ...mapActions(['updateCourse']),
-    handleRefresh() {
-      this.updateCourse(this.courseId)
-      this.$message.success('已刷新')
-    },
     handleLiveCourse() {
       requestLiveCourse(this.courseId)
-        .then(response => {
-          const data = response.data
-          this.$store.commit(UPDATE_COURSE, data.payload)
-        })
+        .then(() => this.refreshLiveCourse())
         .catch(() => this.$message.error('开始直播失败'))
     },
     handleLiveCourseEnd() {
       requestLiveCourseEnd(this.courseId)
         .then(() => {
           this.down = true
-          this.$message.success('下课成功，未退出的成员可继续在直播间聊天')
         })
         .catch(() => this.$message.error('下课失败'))
+    },
+    handleRefresh() {
+      this.loading = true
+      this.refreshLiveCourse()
+    },
+    refreshLiveCourse() {
+      queryLiveCourse(this.courseId)
+        .then(response => {
+          const data = response.data
+          this.live = data.payload
+        })
+        .catch(() => this.$message.error('无法查询课程直播状态'))
+        .finally(() => this.loading = false)
+    },
+    autoRefresh() {
+      if (this.live) {
+        if (this.timer) {
+          clearTimeout(this.timer)
+        }
+      } else {
+        if (!this.timer) {
+          this.autoRefreshHandler(1)
+        }
+      }
+    },
+    // 自动刷新，时间线性增加
+    autoRefreshHandler(timeout) {
+      this.timer = setTimeout(() => {
+        this.refreshLiveCourse()
+        this.autoRefreshHandler(timeout + 1)
+      }, timeout * 1000)
     }
   },
   mounted() {
-    this.updateCourse(this.courseId)
+    this.refreshLiveCourse()
+    this.autoRefresh()
   },
   updated() {
-    this.loading = false
+    this.autoRefresh()
+  },
+  beforeDestroy() {
+    if (this.timer) {
+      clearTimeout(this.timer)
+    }
   }
 }
 </script>

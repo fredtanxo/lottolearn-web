@@ -98,6 +98,9 @@ import { requestLiveCourseSign, handleLiveCourseSign } from '@/api/learn'
 import ChatItem from './item'
 
 export default {
+  props: {
+    roomId: String
+  },
   components: {
     ChatItem
   },
@@ -117,7 +120,6 @@ export default {
     }
   },
   computed: mapState({
-    roomId: state => state.course.live,
     isTeacher: state => state.course.teacherId === state.user.id,
     user: state => state.user,
     courseId: state => state.course.id
@@ -251,7 +253,6 @@ export default {
     this.chatClient = client
 
     client.onConnect = frame => {
-      this.$message.success('已加入房间')
       console.debug('onConnect:', frame)
       this.connecting = false
       // 订阅房间
@@ -360,7 +361,7 @@ export default {
   bottom: 0 !important;
 }
 .chat-item-wrapper {
-  padding: 20px 10px 0;
+  padding: 20px 15px 0;
   height: calc(75vh - 105px);
   overflow: auto;
 }

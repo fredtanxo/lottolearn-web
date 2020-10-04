@@ -27,29 +27,36 @@
 <script>
 import { mapState, mapActions } from 'vuex'
 
+import { queryLiveCourse } from '@/api/learn'
+
 export default {
   data() {
     return {
       courseId: this.$route.params.courseId,
       activeTab: 'chapter',
-      viewed: false
+      viewed: false,
+      live: false
     }
   },
-  computed: mapState({
-    live: state => !!state.course.live
-  }),
   methods: {
     ...mapActions(['updateCourse']),
     handleTabChange(tab) {
       switch (tab.name) {
         case 'chapter':
           this.$router.push(`/learn/${this.courseId}/teach-and-learn/chapter`)
-          break;
+          break
         case 'live':
           this.viewed = true
           this.$router.push(`/learn/${this.courseId}/teach-and-learn/live`)
-          break;
+          break
       }
+    },
+    refreshLiveCourse() {
+      queryLiveCourse(this.courseId)
+        .then(response => {
+          const data = response.data
+          this.live = data.payload
+        })
     }
   },
   mounted() {
@@ -58,8 +65,8 @@ export default {
       this.activeTab = 'live'
     } else {
       this.activeTab = 'chapter'
+      this.refreshLiveCourse()
     }
-    // this.updateCourse(this.courseId)
   }
 }
 </script>

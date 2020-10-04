@@ -49,7 +49,6 @@
         label="ID">
       </el-table-column>
       <el-table-column
-        width="90"
         align="center"
         prop="timeout"
         label="时长（秒）">
@@ -83,7 +82,7 @@ export default {
   data() {
     return {
       params: {
-        page: 1,
+        page: 0,
         size: 20,
         courseId: this.$route.params.courseId,
       },

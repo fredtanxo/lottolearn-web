@@ -55,12 +55,12 @@
               <span>{{ course.credit }} 学分</span>
             </div>
             <div class="course-detail-item">
-              <i class="el-icon-date"></i>
-              <span>{{ course.pubDate }}</span>
+              <i class="el-icon-user"></i>
+              <span>{{ course.teacherName }}</span>
             </div>
             <div class="course-detail-item">
-              <i class="el-icon-connection"></i>
-              <span>{{ course.live ? '正在直播' : '未在直播' }}</span>
+              <i class="el-icon-date"></i>
+              <span>{{ course.termName }}</span>
             </div>
           </el-card>
         </div>
