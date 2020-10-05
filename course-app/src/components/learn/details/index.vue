@@ -213,9 +213,7 @@ export default {
 }
 .details > tr > td:first-child {
   width: 100px;
-}
-.details > tr > td:nth-child(2) {
-  font-size: 14px;
+  font-weight: 500;
 }
 .detail-label {
   margin-left: 15px;

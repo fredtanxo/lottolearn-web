@@ -1,13 +1,11 @@
 <template>
-  <div
-    style="min-height: 50px;"
-    v-loading="loading">
+  <div>
     <div
       v-if="!loading && announcements.length === 0"
       style="text-align: center; margin: 10vh 0;">
       没有公告
     </div>
-    <el-row :gutter="20">
+    <el-row :gutter="20" v-loading="loading" style="min-height: 50px;">
       <el-col
         style="padding-bottom: 20px"
         v-for="announcement in announcements"
@@ -27,18 +25,6 @@
         </el-card>
       </el-col>
     </el-row>
-    <div
-      v-if="announcements.length !== 0"
-      style="text-align: center;">
-      <el-button
-        type="primary"
-        v-if="announcements.length > 0"
-        plain
-        @click="handleMore"
-        :disabled="!more">
-        {{ more ? '上一条' : '已全部加载' }}
-      </el-button>
-    </div>
     <el-button
       class="add-button"
       :style="`display: ${this.isTeacher ? 'block' : 'none'};`"
@@ -85,6 +71,16 @@
         </el-button>
       </div>
     </el-dialog>
+    <div
+      v-if="more"
+      style="text-align: center; margin: 25px 0;">
+      <el-link
+        type="primary"
+        :disabled="loading"
+        @click="handleMore">
+        {{ loading ? '加载中' : '更多' }}
+      </el-link>
+    </div>
   </div>
 </template>
 
@@ -103,7 +99,7 @@ export default {
       courseId: this.$route.params.courseId,
       total: 0,
       announcements: [],
-      more: true,
+      more: false,
       query: {
         page: 0,
         size: 1
@@ -134,9 +130,7 @@ export default {
           const data = response.data
           this.total = data.payload.total
           this.announcements = this.announcements.concat(data.payload.data)
-          if (this.announcements.length == this.total) {
-            this.more = false
-          }
+          this.more = this.announcements.length !== this.total
         })
         .catch(() => this.$message.error('没有加入该课程'))
         .finally(() => this.loading = false)

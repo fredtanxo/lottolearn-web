@@ -28,7 +28,7 @@
           <el-form-item label="权限">
             <el-radio-group
               v-model="formAdd.visibility"
-              size="small">
+              size="medium">
               <el-radio-button :label="false">私密</el-radio-button>
               <el-radio-button :label="true">公开</el-radio-button>
             </el-radio-group>
@@ -139,7 +139,7 @@
             prop="code"
             label="课程邀请码">
             <el-input
-              v-model="formJoin.code"
+              v-model.trim="formJoin.code"
               autofocus
               @keydown.enter.native.prevent="handleJoinCourse"
               placeholder="请输入课程邀请码">
