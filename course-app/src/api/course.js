@@ -8,6 +8,14 @@ export const findCourseById = courseId => {
   return Network.get(`/course/id/${courseId}`)
 }
 
+export const findFullCourseById = courseId => {
+  return Network.get(`/course/full/id/${courseId}`)
+}
+
+export const findCourseMembers = (courseId, params) => {
+  return Network.get(`/course/members/id/${courseId}`, params)
+}
+
 export const addCourse = params => {
   return Network.post('/course/new', params)
 }

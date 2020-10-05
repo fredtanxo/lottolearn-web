@@ -39,7 +39,7 @@
           :model="editProfileForm"
           label-width="68px"
           :rules="editProfileRules">
-          <div style="padding: 0 0 20px; text-align: center;">
+          <div style="padding: 0 0 45px; text-align: center;">
             <el-avatar
               :size="64"
               :src="editProfileForm.avatar">
@@ -70,7 +70,7 @@
             prop="gender">
             <el-radio-group
               v-model="editProfileForm.gender"
-              size="small">
+              size="medium">
               <el-radio-button :label="false">女</el-radio-button>
               <el-radio-button :label="true">男</el-radio-button>
             </el-radio-group>
@@ -201,7 +201,7 @@
 </template>
 
 <script>
-import { mapState } from 'vuex'
+import { mapState, mapActions } from 'vuex'
 
 import Cookies from 'js-cookie'
 
@@ -262,6 +262,7 @@ export default {
     avatar: state => state.user.avatar
   }),
   methods: {
+    ...mapActions(['updateUser']),
     handleCommand(command) {
       switch (command) {
         case 'requestLogout':
@@ -288,6 +289,7 @@ export default {
             .then(() => {
               this.$message.success('修改成功')
               this.handleOpen()
+              this.updateUser()
             })
             .catch(() => this.$message.error('修改失败'))
             .finally(() => this.drawerSubmiting = false)

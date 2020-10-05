@@ -7,7 +7,7 @@ import Select from '@/components/learn/teachandlearn/chapter/select'
 import Learning from '@/components/learn/teachandlearn/chapter/learning'
 import Live from '@/components/learn/teachandlearn/live'
 import Library from '@/components/learn/library'
-import Discussion from '@/components/learn/discussion'
+import Details from '@/components/learn/details'
 
 export default {
   path: '/learn/:courseId',
@@ -57,9 +57,9 @@ export default {
       name: 'library'
     },
     {
-      path: 'discussion',
-      component: Discussion,
-      name: 'discussion'
+      path: 'details',
+      component: Details,
+      name: 'details'
     }
   ]
 }

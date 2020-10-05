@@ -1,0 +1,244 @@
+<template>
+  <div>
+    <el-card shadow="hover">
+      <table class="details" v-loading="courseLoading">
+        <tr v-if="isTeacher">
+          <td>
+            <i class="el-icon-coin"></i>
+            <span class="detail-label">CID</span>
+          </td>
+          <td>
+            <span>{{ course.id }}</span>
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <i class="el-icon-reading"></i>
+            <span class="detail-label">名称</span>
+          </td>
+          <td>
+            <span>{{ course.name }}</span>
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <i class="el-icon-tickets"></i>
+            <span class="detail-label">简介</span>
+          </td>
+          <td>
+            <span>{{ course.description }}</span>
+          </td>
+        </tr>
+        <tr v-if="isTeacher">
+          <td>
+            <i class="el-icon-lock"></i>
+            <span class="detail-label">权限</span>
+          </td>
+          <td>
+            <span>{{ course.visibility ? '公开' : '私密' }}</span>
+          </td>
+        </tr>
+        <tr v-if="isTeacher">
+          <td>
+            <i class="el-icon-link"></i>
+            <span class="detail-label">邀请码</span>
+          </td>
+          <td>
+            <span><code>{{ course.code }}</code></span>
+          </td>
+        </tr>
+        <tr v-if="isTeacher">
+          <td>
+            <i class="el-icon-video-camera"></i>
+            <span class="detail-label">直播ID</span>
+          </td>
+          <td>
+            <span><code>{{ course.live }}</code></span>
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <i class="el-icon-date"></i>
+            <span class="detail-label">学期</span>
+          </td>
+          <td>
+            <span>{{ course.termName }}</span>
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <i class="el-icon-medal"></i>
+            <span class="detail-label">学分</span>
+          </td>
+          <td>
+            <span>{{ course.credit }}</span>
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <i class="el-icon-user"></i>
+            <span class="detail-label">教师</span>
+          </td>
+          <td>
+            <span>{{ course.teacherName }}</span>
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <i class="el-icon-time"></i>
+            <span class="detail-label">发布时间</span>
+          </td>
+          <td>
+            <span>{{ course.pubDate }}</span>
+          </td>
+        </tr>
+      </table>
+    </el-card>
+    <el-divider>
+      <i class="el-icon-user">
+      </i>&emsp;课程成员（{{ totalMembers }}）
+    </el-divider>
+    <div
+      class="members-container"
+      v-loading="membersLoading">
+      <el-tooltip
+        v-for="member in members"
+        :key="member.id"
+        effect="dark"
+        :content="member.userNickname + (member.isTeacher ? '（教师）' : '')"
+        placement="top">
+        <el-card
+          shadow="hover"
+          class="member-card">
+          <div class="member-info-wrapper">
+            <el-avatar :src="member.userAvatar"></el-avatar>
+              <span class="member-name">
+                {{ member.userNickname + (member.isTeacher ? '（教师）' : '') }}
+              </span>
+          </div>
+        </el-card>
+      </el-tooltip>
+    </div>
+    <div
+      v-if="members.length !== totalMembers"
+      style="margin: 20px 0; text-align: center;">
+      <el-link
+        type="primary"
+        :disabled="membersLoading"
+        @click="handleMoreMembers">
+        更多
+      </el-link>
+    </div>
+  </div>
+</template>
+
+<script>
+import { mapState } from 'vuex'
+
+import {
+  findCourseById,
+  findFullCourseById,
+  findCourseMembers
+} from '@/api/course'
+
+export default {
+  data() {
+    return {
+      courseLoading: true,
+      membersLoading: true,
+      course: {
+        id: '',
+        name: '',
+        description: '',
+        visibility: '',
+        code: '',
+        live: '',
+        teacherId: '',
+        teacherName: '',
+        termName: '',
+        credit: ''
+      },
+      totalMembers: 0,
+      members: [],
+      membersQuery: {
+        page: 0,
+        size: 16
+      },
+      courseId: this.$route.params.courseId
+    }
+  },
+  computed: mapState({
+    isTeacher: state => state.course.teacherId === state.user.id
+  }),
+  methods: {
+    refreshCourse() {
+      this.courseLoading = true
+      const promise = this.isTeacher ? findFullCourseById(this.courseId) : findCourseById(this.courseId)
+      promise.then(response => {
+        const data = response.data
+        this.course = { ...this.course, ...data.payload }
+      })
+      .catch(() => this.$message.error('无法获取课程信息'))
+      .finally(() => this.courseLoading = false)
+    },
+    refreshCourseMembers() {
+      this.membersLoading = true
+      findCourseMembers(this.courseId, this.membersQuery)
+        .then(response => {
+          const data = response.data
+          this.totalMembers = data.payload.total
+          this.members = this.members.concat(data.payload.data)
+        })
+        .catch(() => this.$message.error('无法获取课程成员'))
+        .finally(() => this.membersLoading = false)
+    },
+    handleMoreMembers() {
+      this.membersQuery.page++
+      this.refreshCourseMembers()
+    }
+  },
+  mounted() {
+    this.refreshCourse()
+    this.refreshCourseMembers()
+  }
+}
+</script>
+
+<style scoped>
+.details {
+  width: 100%;
+}
+.details > tr > td {
+  padding: 10px 5px;
+}
+.details > tr > td:first-child {
+  width: 100px;
+}
+.details > tr > td:nth-child(2) {
+  font-size: 14px;
+}
+.detail-label {
+  margin-left: 15px;
+}
+
+.members-container {
+  min-height: 100px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-around;
+}
+.member-card {
+  display: inline-block;
+  width: 220px;
+  margin-right: 10px;
+  margin-bottom: 15px;
+}
+.member-info-wrapper {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.member-name {
+  margin-left: 15px;
+}
+</style>

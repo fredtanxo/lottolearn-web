@@ -16,9 +16,9 @@
         <i class="el-icon-video-play"></i>
         <span>资源库</span>
       </el-menu-item>
-      <el-menu-item :index="`/learn/${courseId}/discussion`">
-        <i class="el-icon-chat-dot-round"></i>
-        <span>讨论</span>
+      <el-menu-item :index="`/learn/${courseId}/details`">
+        <i class="el-icon-s-operation"></i>
+        <span>详情</span>
       </el-menu-item>
     </el-menu>
     <el-page-header
