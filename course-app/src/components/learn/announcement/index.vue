@@ -87,7 +87,6 @@
 <script>
 import { mapState } from 'vuex'
 
-import { closeCourse } from '@/api/course'
 import { findCourseAnnouncements, addAnnouncement } from '@/api/learn'
 
 export default {

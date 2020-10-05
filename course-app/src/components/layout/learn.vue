@@ -17,7 +17,7 @@
         <span>资源库</span>
       </el-menu-item>
       <el-menu-item :index="`/learn/${courseId}/details`">
-        <i class="el-icon-s-operation"></i>
+        <i class="el-icon-postcard"></i>
         <span>详情</span>
       </el-menu-item>
     </el-menu>

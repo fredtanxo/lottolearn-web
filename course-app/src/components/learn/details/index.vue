@@ -29,7 +29,7 @@
           </el-link>
         </el-popconfirm>
       </div>
-      <table class="details" v-loading="courseLoading">
+      <table class="details" v-loading="courseLoading" cellspacing="0">
         <tr v-if="isTeacher">
           <td>
             <i class="el-icon-coin"></i>
@@ -251,15 +251,22 @@ export default {
 .details {
   width: 100%;
 }
+.details > tr {
+  transition: all 0.2s linear;
+}
+.details > tr:hover {
+  background-color: #f5f5f5;
+}
 .details > tr > td {
-  padding: 10px 5px;
+  border-bottom: 1px solid #eee;
+  padding: 15px;
 }
 .details > tr > td:first-child {
   width: 100px;
   font-weight: 500;
 }
 .detail-label {
-  margin-left: 15px;
+  margin-left: 20px;
 }
 
 .members-container {
