@@ -73,6 +73,16 @@
           </td>
           <td>
             <span><code>{{ course.code }}</code></span>
+            <span
+              class="detail-item-action"
+              @click="copyToClipboard(course.code)">
+              <el-tooltip
+                effect="dark"
+                :content="clipboardTooltip"
+                placement="top">
+              <i class="el-icon-copy-document"></i>
+              </el-tooltip>
+            </span>
           </td>
         </tr>
         <tr v-if="isTeacher">
@@ -82,6 +92,16 @@
           </td>
           <td>
             <span><code>{{ course.live }}</code></span>
+            <span
+              class="detail-item-action"
+              @click="copyToClipboard(course.live)">
+              <el-tooltip
+                effect="dark"
+                :content="clipboardTooltip"
+                placement="top">
+                <i class="el-icon-copy-document"></i>
+              </el-tooltip>
+            </span>
           </td>
         </tr>
         <tr>
@@ -194,7 +214,8 @@ export default {
         page: 0,
         size: 16
       },
-      courseId: this.$route.params.courseId
+      courseId: this.$route.params.courseId,
+      clipboardTooltip: '点击复制'
     }
   },
   computed: mapState({
@@ -238,6 +259,18 @@ export default {
       closeCourse(this.courseId)
         .then(() => this.$message.success('关闭成功'))
         .finally(() => this.refreshCourse())
+    },
+    copyToClipboard(item) {
+      const input = document.createElement('input')
+      input.setAttribute('value', item)
+      document.body.appendChild(input)
+      input.select()
+      document.execCommand('copy')
+      document.body.removeChild(input)
+      this.clipboardTooltip = '已复制'
+      setTimeout(() => {
+        this.clipboardTooltip = '点击复制'
+      }, 450);
     }
   },
   mounted() {
@@ -288,5 +321,10 @@ export default {
 }
 .member-name {
   margin-left: 15px;
+}
+
+.detail-item-action {
+  margin-left: 15px;
+  cursor: pointer;
 }
 </style>
