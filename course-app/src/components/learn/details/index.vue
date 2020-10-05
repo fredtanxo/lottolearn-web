@@ -46,6 +46,17 @@
           </td>
           <td>
             <span>{{ course.name }}</span>
+            <span
+              v-if="isTeacher"
+              class="detail-item-action"
+              @click="editCourseProp('name', course.name)">
+              <el-tooltip
+                effect="dark"
+                :content="editTooltip"
+                placement="top">
+                <i class="el-icon-edit-outline"></i>
+              </el-tooltip>
+            </span>
           </td>
         </tr>
         <tr>
@@ -55,6 +66,17 @@
           </td>
           <td>
             <span>{{ course.description }}</span>
+            <span
+              v-if="isTeacher"
+              class="detail-item-action"
+              @click="editCourseProp('description', course.description)">
+              <el-tooltip
+                effect="dark"
+                :content="editTooltip"
+                placement="top">
+                <i class="el-icon-edit-outline"></i>
+              </el-tooltip>
+            </span>
           </td>
         </tr>
         <tr v-if="isTeacher">
@@ -64,6 +86,17 @@
           </td>
           <td>
             <span>{{ course.visibility ? '公开' : '私密' }}</span>
+            <span
+              v-if="isTeacher"
+              class="detail-item-action"
+              @click="handleUpdateCourse('visibility', !course.visibility)">
+              <el-tooltip
+                effect="dark"
+                :content="switchTooltip"
+                placement="top">
+                <i class="el-icon-refresh"></i>
+              </el-tooltip>
+            </span>
           </td>
         </tr>
         <tr v-if="isTeacher">
@@ -74,6 +107,7 @@
           <td>
             <span><code>{{ course.code }}</code></span>
             <span
+              v-if="isTeacher"
               class="detail-item-action"
               @click="copyToClipboard(course.code)">
               <el-tooltip
@@ -93,6 +127,7 @@
           <td>
             <span><code>{{ course.live }}</code></span>
             <span
+              v-if="isTeacher"
               class="detail-item-action"
               @click="copyToClipboard(course.live)">
               <el-tooltip
@@ -120,6 +155,17 @@
           </td>
           <td>
             <span>{{ course.credit }}</span>
+            <span
+              v-if="isTeacher"
+              class="detail-item-action"
+              @click="editCourseProp('credit', course.credit)">
+              <el-tooltip
+                effect="dark"
+                :content="editTooltip"
+                placement="top">
+                <i class="el-icon-edit-outline"></i>
+              </el-tooltip>
+            </span>
           </td>
         </tr>
         <tr>
@@ -142,6 +188,17 @@
         </tr>
       </table>
     </el-card>
+    <el-dialog :visible.sync="editDialog">
+      <el-input v-model="editContent"></el-input>
+      <span slot="footer">
+        <el-button
+          type="primary"
+          :loading="courseLoading"
+          @click="handleUpdateCourseFromInput">
+          完成
+        </el-button>
+      </span>
+    </el-dialog>
     <el-divider>
       <i class="el-icon-user">
       </i>&emsp;课程成员（{{ totalMembers }}）
@@ -187,6 +244,7 @@ import {
   findCourseById,
   findFullCourseById,
   findCourseMembers,
+  updateCourse,
   quitCourse,
   closeCourse
 } from '@/api/course'
@@ -205,6 +263,7 @@ export default {
         live: '',
         teacherId: '',
         teacherName: '',
+        termId: '',
         termName: '',
         credit: ''
       },
@@ -214,8 +273,13 @@ export default {
         page: 0,
         size: 16
       },
+      editDialog: false,
+      editProp: '',
+      editContent: '',
       courseId: this.$route.params.courseId,
-      clipboardTooltip: '点击复制'
+      clipboardTooltip: '点击复制',
+      switchTooltip: '点击切换',
+      editTooltip: '点击编辑'
     }
   },
   computed: mapState({
@@ -271,6 +335,22 @@ export default {
       setTimeout(() => {
         this.clipboardTooltip = '点击复制'
       }, 450);
+    },
+    editCourseProp(prop, oldVal) {
+      this.editDialog = true
+      this.editProp = prop
+      this.editContent = oldVal
+    },
+    handleUpdateCourseFromInput() {
+      this.handleUpdateCourse(this.editProp, this.editContent)
+    },
+    handleUpdateCourse(prop, value) {
+      this.courseLoading = true
+      const newCourse = { ...this.course }
+      newCourse[prop] = value
+      updateCourse(this.courseId, newCourse)
+        .then(() => this.editDialog = false)
+        .finally(() => this.refreshCourse())
     }
   },
   mounted() {

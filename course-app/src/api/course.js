@@ -20,6 +20,10 @@ export const addCourse = params => {
   return Network.post('/course/new', params)
 }
 
+export const updateCourse = (courseId, params) => {
+  return Network.put(`/course/id/${courseId}`, params)
+}
+
 export const joinCourse = code => {
   return Network.put(`/course/invitation/${code}`)
 }
