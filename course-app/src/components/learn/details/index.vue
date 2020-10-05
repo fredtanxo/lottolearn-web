@@ -1,6 +1,34 @@
 <template>
   <div>
     <el-card shadow="hover">
+      <div slot="header">
+        <el-popconfirm
+          v-if="isTeacher"
+          confirmButtonText="关闭"
+          icon="el-icon-info"
+          iconColor="red"
+          title="确定关闭课程？关闭课程后其他人将无法加入该课程，此操作无法撤销！"
+          @onConfirm="handleCloseCourse">
+          <el-link
+            slot="reference"
+            type="danger">
+            关闭课程
+          </el-link>
+        </el-popconfirm>
+        <el-popconfirm
+          v-else
+          confirmButtonText="退出"
+          icon="el-icon-info"
+          iconColor="red"
+          title="退出该课程？"
+          @onConfirm="handleQuitCourse">
+          <el-link
+            type="danger"
+            slot="reference">
+            退出课程
+          </el-link>
+        </el-popconfirm>
+      </div>
       <table class="details" v-loading="courseLoading">
         <tr v-if="isTeacher">
           <td>
@@ -138,7 +166,9 @@ import { mapState } from 'vuex'
 import {
   findCourseById,
   findFullCourseById,
-  findCourseMembers
+  findCourseMembers,
+  quitCourse,
+  closeCourse
 } from '@/api/course'
 
 export default {
@@ -195,6 +225,19 @@ export default {
     handleMoreMembers() {
       this.membersQuery.page++
       this.refreshCourseMembers()
+    },
+    handleQuitCourse() {
+      quitCourse(this.courseId)
+        .then(() => {
+          this.$message.success('退出成功')
+          this.$router.push('/course?refresh=true')
+        })
+        .catch(() => this.$message.error('退出失败'))
+    },
+    handleCloseCourse() {
+      closeCourse(this.courseId)
+        .then(() => this.$message.success('关闭成功'))
+        .finally(() => this.refreshCourse())
     }
   },
   mounted() {

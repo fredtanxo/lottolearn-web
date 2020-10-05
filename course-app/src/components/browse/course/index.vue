@@ -145,6 +145,11 @@ export default {
   },
   mounted() {
     this.queryCourseList()
+  },
+  activated() {
+    if (location.search.indexOf('refresh=true') !== -1) {
+      this.queryCourseList()
+    }
   }
 }
 </script>

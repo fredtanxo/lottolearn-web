@@ -20,10 +20,6 @@ export const addCourse = params => {
   return Network.post('/course/new', params)
 }
 
-export const closeCourse = courseId => {
-  return Network.delete(`/course/${courseId}`)
-}
-
 export const joinCourse = code => {
   return Network.put(`/course/invitation/${code}`)
 }
@@ -42,4 +38,12 @@ export const findCourseSigns = params => {
 
 export const findCourseSignRecord = (courseId, signId) => {
   return Network.get(`/course/sign/${signId}/records?courseId=${courseId}`)
+}
+
+export const quitCourse = courseId => {
+  return Network.delete(`/course/user/id/${courseId}`)
+}
+
+export const closeCourse = courseId => {
+  return Network.delete(`/course/${courseId}`)
 }
