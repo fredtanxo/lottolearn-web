@@ -28,11 +28,10 @@
         @click="handleRefresh">
         刷新
       </el-button>
-      <el-dialog 
-        :visible.sync="courseSignDialog"
-        destroy-on-close>
-        <sign></sign>
-      </el-dialog>
+      <sign
+        :setSignDialog="setSignDialog"
+        :courseSignDialog="courseSignDialog">
+      </sign>
     </div>
     <stream v-if="live" :roomId="live" />
     <chat v-if="live" :roomId="live" />
@@ -126,12 +125,15 @@ export default {
         }
       }
     },
-    // 自动刷新，时间线性增加
+    // 自动刷新，时间间隔线性增加
     autoRefreshHandler(timeout) {
       this.timer = setTimeout(() => {
         this.refreshLiveCourse()
         this.autoRefreshHandler(timeout + 1)
       }, timeout * 1000)
+    },
+    setSignDialog() {
+      this.courseSignDialog = false
     }
   },
   mounted() {

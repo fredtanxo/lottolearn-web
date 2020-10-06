@@ -1,23 +1,27 @@
 <template>
-  <div class="sign-container">
+<el-dialog
+  :visible="courseSignDialog"
+  @close="() => setSignDialog(false)">
     <el-page-header
+      slot="title"
       v-if="details"
       @back="handleBack">
       <div slot="content">
-        <span>{{ this.current }} 的签到</span>
-        <el-link
-          type="primary"
-          :underline="false"
-          style="margin: 0 25px;">
-          下载数据
-        </el-link>
+        <span>{{ this.currentSignDate }} 的签到</span>
       </div>
     </el-page-header>
+    <span
+      slot="title"
+      v-else
+      class="sign-header">
+      签到记录
+    </span>
     <el-table
       v-if="details"
       v-loading="loading"
       :data="courseSignRecordData">
       <el-table-column
+        width="100"
         prop="userId"
         label="用户ID">
       </el-table-column>
@@ -45,6 +49,7 @@
       v-loading="loading"
       :data="courseSignData">
       <el-table-column
+        width="100"
         prop="id"
         label="ID">
       </el-table-column>
@@ -72,28 +77,62 @@
         </template>
       </el-table-column>
     </el-table>
-  </div>
+    <span
+      slot="footer"
+      v-if="details">
+      <el-button
+        type="primary"
+        :loading="downloading"
+        @click="handleDownloadDetails">
+        下载数据
+      </el-button>
+    </span>
+    <span
+      slot="footer"
+      v-else>
+      <el-pagination
+        background
+        layout="prev, pager, next"
+        :page-size="params.size"
+        :total="total"
+        @current-change="handlePageChange"
+        hide-on-single-page>
+      </el-pagination>
+    </span>
+  </el-dialog>
 </template>
 
 <script>
-import { findCourseSigns, findCourseSignRecord } from '@/api/course';
+import { mapState } from 'vuex'
+
+import config from '@/config'
+import { findCourseSigns, findCourseSignRecord } from '@/api/course'
 
 export default {
+  props: {
+    courseSignDialog: Boolean,
+    setSignDialog: Function
+  },
   data() {
     return {
       params: {
         page: 0,
-        size: 20,
-        courseId: this.$route.params.courseId,
+        size: 10,
+        courseId: this.$route.params.courseId
       },
       total: 0,
       details: false,
       loading: true,
-      current: '',
+      currentSignId: '',
+      currentSignDate: '',
       courseSignData: [],
-      courseSignRecordData: []
+      courseSignRecordData: [],
+      downloading: false
     }
   },
+  computed: mapState({
+    courseName: state => state.course.name
+  }),
   methods: {
     refreshSignData() {
       this.loading = true
@@ -111,7 +150,8 @@ export default {
     refreshSignDetail(signId, signDate) {
       this.loading = true
       this.details = true
-      this.current = signDate
+      this.currentSignId = signId
+      this.currentSignDate = signDate
       findCourseSignRecord(this.params.courseId, signId)
         .then(response => {
           const data = response.data
@@ -126,6 +166,29 @@ export default {
     handleBack() {
       this.details = false
       this.courseSignRecordData.length = 0
+    },
+    handlePageChange(page) {
+      this.params.page = page - 1
+      this.refreshSignData()
+    },
+    handleDownloadDetails() {
+      this.downloading = true
+      fetch(`${config.apiBaseUrl}/course/sign/${this.currentSignId}/download?courseId=${this.params.courseId}`, {
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${sessionStorage.getItem('token')}`
+        }
+      })
+      .then(response => response.blob())
+      .then(data => {
+        const a = document.createElement('a')
+        a.download = `签到记录 - ${this.courseName} - ${this.currentSignDate}.xls`
+        a.href = URL.createObjectURL(data)
+        a.click()
+        URL.revokeObjectURL(data)
+      })
+      .catch(() => this.$message.error('下载失败'))
+      .finally(() => this.downloading = false)
     }
   },
   mounted() {
@@ -134,6 +197,11 @@ export default {
 }
 </script>
 
-<style>
-
+<style scoped>
+.sign-header {
+  float: left;
+  font-size: 18px;
+  margin-left: 5px;
+  line-height: 60px;
+}
 </style>
