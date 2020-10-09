@@ -176,9 +176,10 @@
                 class="dialog-footer">
                 <el-button
                   type="primary"
+                  icon="el-icon-check"
                   :loading="dialogSubmiting"
                   @click="handleChangeUsernameAndPassword">
-                  {{ password ? '修改' : '添加' }}
+                  完成
                 </el-button>
               </span>
             </el-dialog>
@@ -186,9 +187,10 @@
           <div style="text-align: center;">
             <el-button
               type="primary"
+              icon="el-icon-check"
               @click="handleSubmitEditProfile"
               :loading="drawerSubmiting">
-              修改
+              完成
             </el-button>
           </div>
         </el-form>
@@ -325,7 +327,7 @@ export default {
       }
     },
     handleCloseAccount(type) {
-
+      type < 1
     },
     handleChangeUsernameAndPassword() {
       this.$refs.editUsernamePassword.validate(valid => {

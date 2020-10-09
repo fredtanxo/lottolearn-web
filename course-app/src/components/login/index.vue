@@ -31,6 +31,7 @@
       </el-form>
       <el-button
         type="primary"
+        icon="el-icon-right"
         :loading="loginLoading"
         @click="requestLogin"
         style="width: 100%;">

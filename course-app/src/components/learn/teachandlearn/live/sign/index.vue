@@ -1,7 +1,7 @@
 <template>
-<el-dialog
-  :visible="courseSignDialog"
-  @close="() => setSignDialog(false)">
+  <el-dialog
+    :visible="courseSignDialog"
+    @close="() => setSignDialog(false)">
     <el-page-header
       slot="title"
       v-if="details"
@@ -82,6 +82,7 @@
       v-if="details">
       <el-button
         type="primary"
+        icon="el-icon-download"
         :loading="downloading"
         @click="handleDownloadDetails">
         下载数据

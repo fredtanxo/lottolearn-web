@@ -193,6 +193,7 @@
       <span slot="footer">
         <el-button
           type="primary"
+          icon="el-icon-check"
           :loading="courseLoading"
           @click="handleUpdateCourseFromInput">
           完成

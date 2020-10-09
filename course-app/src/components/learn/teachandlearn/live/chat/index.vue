@@ -9,21 +9,25 @@
         trigger="click">
         <div style="text-align: center;">
           <el-button
+            icon="el-icon-time"
             @click="requestSign(15)"
             :disabled="signDisable">
             15秒
           </el-button>
           <el-button
+            icon="el-icon-time"
             @click="requestSign(30)"
             :disabled="signDisable">
             30秒
           </el-button>
           <el-button
+            icon="el-icon-time"
             @click="requestSign(60)"
             :disabled="signDisable">
             1分钟
           </el-button>
           <el-button
+            icon="el-icon-time"
             @click="requestSign(300)"
             :disabled="signDisable">
             5分钟
@@ -31,6 +35,7 @@
         </div>
         <el-button
           slot="reference"
+          icon="el-icon-timer"
           :disabled="signDisable">
           签到
         </el-button>
@@ -41,9 +46,13 @@
         width="400"
         trigger="click">
         <div style="text-align: center;">
-          <el-button>随机</el-button>
+          <el-button icon="el-icon-magic-stick">随机</el-button>
         </div>
-        <el-button slot="reference">提问</el-button>
+        <el-button
+          slot="reference"
+          icon="el-icon-chat-dot-square">
+          提问
+        </el-button>
       </el-popover>
     </div>
     <div

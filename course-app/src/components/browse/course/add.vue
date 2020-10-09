@@ -4,9 +4,17 @@
       <div
         class="select-mode"
         v-if="step === 0">
-        <el-button @click="handleNextStep('add')">创建课程</el-button>
+        <el-button
+          icon="el-icon-document-add"
+          @click="handleNextStep('add')">
+          创建课程
+        </el-button>
         <el-divider direction="vertical"></el-divider>
-        <el-button @click="handleNextStep('join')">加入课程</el-button>
+        <el-button
+          icon="el-icon-link"
+          @click="handleNextStep('join')">
+          加入课程
+        </el-button>
       </div>
       <div
         class="info-form"
@@ -60,6 +68,7 @@
               </el-option>
             </el-select>
             <el-button
+              icon="el-icon-plus"
               style="margin-left: 10px;"
               @click="dialog = true">
               添加
@@ -98,6 +107,7 @@
                   v-if="step === 1">
                   <el-button
                     type="primary"
+                    icon="el-icon-check"
                     @click="handleAddTerm"
                     :loading="loadingTerm">
                     添加
@@ -122,6 +132,7 @@
           v-if="step === 1 && mode === 'add'">
           <el-button
             type="primary"
+            icon="el-icon-check"
             @click="handleAddCourse"
             :loading="loadingAdd">
             创建
@@ -151,6 +162,7 @@
           v-if="step === 1 && mode === 'join'">
           <el-button
             type="primary"
+            icon="el-icon-connection"
             @click="handleJoinCourse"
             :loading="loadingJoin">
             加入

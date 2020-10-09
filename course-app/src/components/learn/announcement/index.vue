@@ -65,6 +65,7 @@
       <div style="padding-top: 10px; text-align: center;">
         <el-button
           type="primary"
+          icon="el-icon-check"
           :loading="submiting"
           @click="handleAnnouncementSubmit">
           发布

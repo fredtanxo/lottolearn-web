@@ -11,19 +11,20 @@
       <el-button
         v-if="isTeacher"
         type="primary"
-        size="medium"
+        icon="el-icon-video-camera"
         @click="handleLiveCourse">
         开始直播
       </el-button>
       <el-button
         v-if="isTeacher"
-        size="medium"
+        icon="el-icon-finished"
         @click="courseSignDialog = true">
         签到记录
       </el-button>
       <el-button
         v-else
         type="primary"
+        icon="el-icon-refresh"
         size="medium"
         @click="handleRefresh">
         刷新
@@ -45,6 +46,7 @@
         <el-button
           slot="reference"
           type="danger"
+          icon="el-icon-switch-button"
           size="medium"
           plain
           :disabled="down">
