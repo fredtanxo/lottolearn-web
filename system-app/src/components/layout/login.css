@@ -10,36 +10,3 @@
   text-align: center;
   padding: 15px 0;
 }
-
-.third-party-wrapper {
-  margin: 10px 0;
-  line-height: 60px;
-}
-
-.third-party-logo-wrapper {
-  text-align: right;
-  float: right;
-  margin-top: 0.5em;
-}
-
-.third-party-logo > svg {
-  width: 2em;
-  height: 2em;
-  transition: all .2s ease-out;
-}
-
-.third-party-github > svg:hover {
-  fill: #303133;
-}
-.third-party-weibo > svg:hover {
-  fill: #F56C6C;
-}
-
-.third-party-link {
-  margin: 0 5px;
-  display: inline-block;
-  border: transparent;
-  background-color: transparent;
-  cursor: pointer;
-  line-height: inherit;
-}

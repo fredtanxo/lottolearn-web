@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 
 import { Form, Input, Button, message } from 'antd';
-import { UserOutlined, LockOutlined, GithubOutlined, WeiboCircleOutlined } from '@ant-design/icons';
+import { UserOutlined, LockOutlined } from '@ant-design/icons';
 
 import Cookies from 'js-cookie';
 
@@ -89,17 +89,6 @@ export default () => {
               </Button>
             </Form.Item>
           </Form>
-        </div>
-        <div className="third-party-wrapper">
-          <span style={{ fontSize: 14 }}>社交账号登录</span>
-          <span className="third-party-logo-wrapper">
-            <button className="third-party-link">
-              <GithubOutlined className="third-party-logo third-party-github" />
-            </button>
-            <button className="third-party-link">
-              <WeiboCircleOutlined className="third-party-logo third-party-weibo" />
-            </button>
-          </span>
         </div>
       </div>
     </LoginLayout>
