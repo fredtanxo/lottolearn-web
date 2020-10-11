@@ -30,6 +30,7 @@
         刷新
       </el-button>
       <sign
+        v-if="isTeacher && courseSignDialog"
         :setSignDialog="setSignDialog"
         :courseSignDialog="courseSignDialog">
       </sign>

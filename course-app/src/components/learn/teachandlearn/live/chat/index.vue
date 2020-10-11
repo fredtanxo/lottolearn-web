@@ -251,7 +251,7 @@ export default {
   mounted() {
     this.chatRef = this.$refs.chat
 
-    const token = sessionStorage.getItem('token')
+    const token = sessionStorage.getItem(config.accessTokenKey)
     const client = new Client({
       brokerURL: `wss://${config.liveBaseUrl}${config.chatBaseUri}/classroom`,
       connectHeaders: {

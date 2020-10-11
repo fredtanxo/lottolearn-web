@@ -22,7 +22,11 @@
           </span>
           <el-dropdown-menu slot="dropdown">
             <el-dropdown-item command="editProfile">个人资料</el-dropdown-item>
-            <el-dropdown-item command="requestLogout">退出登陆</el-dropdown-item>
+            <el-dropdown-item
+              command="requestLogout"
+              :disabled="loggingOut">
+              退出登陆
+            </el-dropdown-item>
           </el-dropdown-menu>
         </el-dropdown>
       </el-header>
@@ -227,6 +231,7 @@ export default {
       drawerSubmiting: false,
       dialogLoading: false,
       dialogSubmiting: false,
+      loggingOut: false,
       editProfileForm: {
         nickname: '',
         gender: false,
@@ -279,6 +284,7 @@ export default {
       }
     },
     requestLogout() {
+      this.loggingOut = true
       Cookies.remove(config.accessTokenKey, {
         path: '/',
         domain: 'lottolearn.com'
