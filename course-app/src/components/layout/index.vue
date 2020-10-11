@@ -207,13 +207,16 @@ import { mapState, mapActions } from 'vuex'
 
 import Cookies from 'js-cookie'
 
-import { currentUser, editUser } from '@/api/user'
 import {
   findAllAccounts,
   findUserAccountById,
   addUserAccount,
   updateUserAccount
 } from '@/api/account'
+import { logout } from '@/api/auth'
+import { currentUser, editUser } from '@/api/user'
+
+import config from '../../config'
 
 export default {
   data() {
@@ -276,9 +279,12 @@ export default {
       }
     },
     requestLogout() {
-      Cookies.remove('token', { path: '/', domain: 'lottolearn.com' })
-      sessionStorage.removeItem('token')
-      location.href = '/'
+      Cookies.remove(config.accessTokenKey, {
+        path: '/',
+        domain: 'lottolearn.com'
+      })
+      sessionStorage.removeItem(config.accessTokenKey)
+      logout().finally(() => location.href = '/')
     },
     handleEditProfile() {
       this.edit = true
@@ -405,6 +411,9 @@ export default {
       this.dialog = false
     }
   },
+  mounted() {
+    this.updateUser()
+  }
 }
 </script>
 

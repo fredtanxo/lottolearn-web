@@ -9,6 +9,10 @@ import storeobj from './store'
 import routes from './router'
 import App from './App.vue'
 
+import config from './config'
+
+import { refresh } from './api/auth'
+
 Vue.use(Vuex)
 Vue.use(VueRouter)
 Vue.use(ElementUI)
@@ -27,22 +31,41 @@ const router = new VueRouter({
   }
 })
 
-const token = Cookies.get('token')
-sessionStorage.removeItem('token')
-if (token) {
-  sessionStorage.setItem('token', token)
-}
-
 router.beforeEach((to, from, next) => {
-  if (to.name !== 'login' && !sessionStorage.getItem('token')) {
+  if (to.name !== 'login' && !sessionStorage.getItem(config.accessTokenKey)) {
     next({ name: 'login' })
   } else {
     next()
   }
 })
 
-new Vue({
-  store,
-  router,
-  render: h => h(App),
-}).$mount('#app')
+// 确保Vue实例加载前已经获得access_token并存入sessionStorage
+new Promise((resolve, reject) => {
+  const accessToken = Cookies.get(config.accessTokenKey)
+  sessionStorage.removeItem(config.accessTokenKey)
+  if (accessToken) {
+    sessionStorage.setItem(config.accessTokenKey, accessToken)
+    resolve()
+  } else {
+    reject()
+  }
+})
+.catch(async () => {
+  const response = await refresh()
+  if (response.status === 200) {
+    const json = await response.json()
+    Cookies.set(config.accessTokenKey, json['access_token'], {
+      path: '/',
+      domain: 'lottolearn.com',
+      // expires: new Date(json['access_token_expiration'])
+    })
+    sessionStorage.setItem(config.accessTokenKey, json['access_token'])
+  }
+})
+.finally(() => {
+  new Vue({
+    store,
+    router,
+    render: h => h(App),
+  }).$mount('#app')
+})

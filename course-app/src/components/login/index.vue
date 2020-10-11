@@ -61,6 +61,8 @@ import Cookies from 'js-cookie'
 
 import { login } from '@/api/auth'
 
+import config from '../../config'
+
 export default {
   data() {
     return {
@@ -90,20 +92,17 @@ export default {
           this.loginTrying = true
           this.loginLoading = true
           login(this.login)
-            .then(response => {
+            .then(async response => {
               if (response.status === 200) {
-                const authHeader = response.headers['authorization']
-                const jwt = authHeader.substr("Bearer ".length)
-                Cookies.set('token', jwt, {
+                const json = await response.json()
+                Cookies.set(config.accessTokenKey, json['access_token'], {
                   path: '/',
-                  domain: 'lottolearn.com'
+                  domain: 'lottolearn.com',
+                  // expires: new Date(Number.parseInt(json['access_token_expiration']))
                 })
-                // location跳转，刷新整个应用
-                location.href = '/'
-              }
-            })
-            .catch(error => {
-              if (error.response && error.response.status === 401) {
+                sessionStorage.setItem(config.accessTokenKey, json['access_token'])
+                this.$router.push('/')
+              } else if (response.status === 401) {
                 // 前端防止恶意登录
                 return new Promise(resolve => {
                   setTimeout(() => {
@@ -114,8 +113,8 @@ export default {
               } else {
                 this.$message.error('网络异常')
               }
-              console.log(error)
             })
+            .catch(() => this.$message.error('网络异常'))
             .finally(() => {
               this.loginTrying = false
               this.loginLoading = false
@@ -124,13 +123,13 @@ export default {
       })
     },
     requestThirdPartyLogin(registrationId) {
-      location.href = `https://api.lottolearn.com/oauth2/authorization/${registrationId}`
+      location.href = `https://auth.lottolearn.com/oauth2/authorization/${registrationId}`
     }
   },
   mounted() {
-    if (Cookies.get('token')) {
-      this.$router.push('/')
-    }
+    // if (Cookies.get(config.accessTokenKey)) {
+    //   this.$router.push('/')
+    // }
     if (location.search.indexOf('failure=true') !== -1) {
       this.$message.error('授权登录失败')
     }

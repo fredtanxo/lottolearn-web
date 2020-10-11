@@ -1,13 +1,23 @@
-import Network from '@/api'
+import config from '../config'
 
 export const login = params => {
-  return Network.post('/auth/login', params)
+  return fetch(`${config.authBaseUrl}/auth/login`, {
+    method: 'POST',
+    credentials: 'include',
+    body: JSON.stringify(params)
+  })
 }
 
 export const refresh = () => {
-  return Network.post('/auth/refresh')
+  return fetch(`${config.authBaseUrl}/auth/refresh`, {
+    method: 'POST',
+    credentials: 'include'
+  })
 }
 
 export const logout = () => {
-  return Network.delete('/auth/logout')
+  return fetch(`${config.authBaseUrl}/auth/logout`, {
+    method: 'DELETE',
+    credentials: 'include'
+  })
 }

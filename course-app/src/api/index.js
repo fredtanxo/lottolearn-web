@@ -1,10 +1,12 @@
 import axios from 'axios'
-import Cookies from 'js-cookie'
 
 import config from '../config'
 
 axios.defaults.baseURL = config.apiBaseUrl
-axios.defaults.headers.common['Authorization'] = `Bearer ${Cookies.get('token')}`
+axios.interceptors.request.use(cfg => {
+  cfg.headers['Authorization'] = `Bearer ${sessionStorage.getItem(config.accessTokenKey)}`
+  return cfg
+}, err => Promise.reject(err))
 
 const Network = {
   get(url, params = {}) {
