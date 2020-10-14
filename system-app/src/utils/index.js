@@ -1,8 +1,3 @@
-
-export const checkAuth = () => {
-  return !!sessionStorage.getItem('token');
-};
-
 export const mapRolesToOptions = roles => {
   const options = [];
   roles.forEach(role => {

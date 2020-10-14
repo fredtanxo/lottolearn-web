@@ -1,9 +1,10 @@
 import React from 'react';
 import { Switch, Route, Redirect } from 'react-router-dom';
 
-import PrivateRoute from './private';
+import PrivateRoute from '../containers/router/private';
 
 import Login from '../components/login';
+import Forbidden from '../components/error/forbidden';
 
 import Dashboard from '../components/dashboard';
 import User from '../components/account/user';
@@ -12,13 +13,16 @@ import Menu from '../components/account/menu';
 import Storage from '../components/storage';
 import SysLog from '../components/syslog';
 import NotFound from '../components/error/notfound';
-import AppLayout from '../components/layout';
+import AppLayout from '../containers/layout';
 
 const AppRouter = () => {
   return (
     <Switch>
       <Route path="/login">
         <Login />
+      </Route>
+      <Route path="/forbidden">
+        <Forbidden />
       </Route>
       <PrivateRoute exact path="/">
         <Redirect to="/dashboard" />

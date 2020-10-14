@@ -1,6 +1,5 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { connect } from 'react-redux';
 
 import Cookies from 'js-cookie';
 
@@ -14,22 +13,30 @@ import {
   MonitorOutlined
 } from '@ant-design/icons';
 
+import config from '../../config';
+import { logout } from '../../api/auth';
+
 import './layout.css';
 
 const { Header, Content, Footer, Sider } = Layout;
 const { SubMenu } = Menu;
 
-const AppLayout = ({ children, menuKey, auth }) => {
+const AppLayout = ({ children, menuKey, user, updateCurrentUser }) => {
   const [collapsed, setCollapsed] = useState(false);
 
+  useEffect(() => updateCurrentUser(), []);
+  console.log(updateCurrentUser)
   if (!menuKey) {
     menuKey = ['', '']
   }
 
   const requestLogout = () => {
-    Cookies.remove('token', { path: '/', domain: 'lottolearn.com' });
-    sessionStorage.removeItem('token');
-    window.location.href = '/';
+    Cookies.remove(config.accessTokenKey, {
+      path: '/',
+      domain: 'lottolearn.com'
+    });
+    sessionStorage.removeItem(config.accessTokenKey);
+    logout().finally(() => window.location.href = '/');
   };
 
   const menu = (
@@ -89,10 +96,10 @@ const AppLayout = ({ children, menuKey, auth }) => {
             <div style={{ float: 'right', marginRight: 20, cursor: 'pointer' }}>
               <Avatar
                 size={32}
-                src={auth.avatar}
+                src={user.avatar}
                 style={{ marginTop: -4 }}
               />
-              <span style={{ marginLeft: 10 }}>{auth.nickname}</span>
+              <span style={{ marginLeft: 10 }}>{user.nickname}</span>
             </div>
           </Dropdown>
         </Header>
@@ -107,8 +114,4 @@ const AppLayout = ({ children, menuKey, auth }) => {
   );
 };
 
-const mapStateToProps = state => ({
-  auth: state.auth
-});
-
-export default connect(mapStateToProps, null)(AppLayout);
+export default AppLayout;

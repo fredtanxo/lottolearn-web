@@ -1,22 +1,35 @@
 import React from 'react';
 import { Route, Redirect } from 'react-router-dom';
 
-import { checkAuth } from '../utils';
+import config from '../config';
 
-export default ({ children, ...rest}) => {
+export default ({ permit, children, ...rest}) => {
   return (
     <Route
       {...rest}
-      render={({ location }) => 
-        checkAuth() ? (children) : (
-          <Redirect
-            to={{
-              pathname: '/login',
-              state: { from: location }
-            }}
-          />
-        )
-      }
+      render={({ location }) => {
+        if (!sessionStorage.getItem(config.accessTokenKey)) {
+          return (
+            <Redirect
+              to={{
+                pathname: '/login',
+                state: { from: location }
+              }}
+            />
+          );
+        }
+        if (!permit) {
+          return (
+            <Redirect
+              to={{
+                pathname: '/forbidden',
+                state: { from: location }
+              }}
+            />
+          );
+        }
+        return children;
+      }}
     />
   );
 };

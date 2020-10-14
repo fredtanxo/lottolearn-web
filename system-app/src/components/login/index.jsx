@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Redirect } from 'react-router-dom';
 
 import { Form, Input, Button, message } from 'antd';
 import { UserOutlined, LockOutlined } from '@ant-design/icons';
@@ -8,8 +9,13 @@ import Cookies from 'js-cookie';
 import LoginLayout from '../layout/login';
 
 import { login } from '../../api/auth';
+import config from '../../config';
 
 export default () => {
+  if (sessionStorage.getItem(config.accessTokenKey)) {
+    return (<Redirect to={{ pathname: '/' }} />)
+  }
+
   const [loading, setLoading] = useState(false);
   const [trying, setTrying] = useState(false);
 
@@ -19,16 +25,17 @@ export default () => {
     }
     setTrying(true);
     setLoading(true);
-    login(params).then(response => {
+    login(params).then(async response => {
       if (response.status === 200) {
-        const authHeader = response.headers['authorization'];
-        const jwt = authHeader.substr("Bearer ".length);
-        Cookies.set('token', jwt, { path: '/', domain: 'lottolearn.com' });
+        const json = await response.json();
+        Cookies.set(config.accessTokenKey, json[config.accessTokenKey], {
+          path: '/',
+          domain: 'lottolearn.com',
+          // expires: 
+        });
+        sessionStorage.setItem(config.accessTokenKey, json[config.accessTokenKey]);
         window.location.href = '/';
-      }
-    })
-    .catch(error => {
-      if (error.response && error.response.status === 401) {
+      } else if (response.status === 401) {
         // 前端防止恶意登录
         return new Promise(resolve => {
           setTimeout(() => {
@@ -40,6 +47,7 @@ export default () => {
         message.error('网络异常')
       }
     })
+    .catch(error => message.error('网络异常'))
     .finally(() => {
       setTrying(false)
       setLoading(false)
