@@ -28,7 +28,7 @@ const AppRouter = () => {
         <Redirect to="/dashboard" />
       </PrivateRoute>
       <PrivateRoute path="/dashboard">
-        <AppLayout menuKey={['0', '0']}>
+        <AppLayout>
           <Dashboard />
         </AppLayout>
       </PrivateRoute>
@@ -36,27 +36,27 @@ const AppRouter = () => {
         <Redirect to="/members/user" />
       </PrivateRoute>
       <PrivateRoute path="/members/user">
-        <AppLayout menuKey={['1', 'user']}>
+        <AppLayout>
           <User />
         </AppLayout>
       </PrivateRoute>
       <PrivateRoute path="/members/role">
-        <AppLayout menuKey={['1', 'role']}>
+        <AppLayout>
           <Role />
         </AppLayout>
       </PrivateRoute>
       <PrivateRoute path="/members/menu">
-        <AppLayout menuKey={['1', 'menu']}>
+        <AppLayout>
           <Menu />
         </AppLayout>
       </PrivateRoute>
       <PrivateRoute path="/storage">
-        <AppLayout menuKey={['1', 'storage']}>
+        <AppLayout>
           <Storage />
         </AppLayout>
       </PrivateRoute>
       <PrivateRoute path="/syslogs">
-        <AppLayout menuKey={['1', 'syslog']}>
+        <AppLayout>
           <SysLog />
         </AppLayout>
       </PrivateRoute>
