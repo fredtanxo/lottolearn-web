@@ -1,8 +1,8 @@
 import { connect } from 'react-redux';
 
-import { modifyUser, startModifyUser, closeUser } from '../../../actions/account/user';
+import { modifyUser, startModifyUser, closeUser } from '../../../actions/members/user';
 
-import UserTable from '../../../components/account/user/table';
+import UserTable from '../../../components/members/user/table';
 
 const mapStateToProps = state => ({
   data: state.user.tableData,

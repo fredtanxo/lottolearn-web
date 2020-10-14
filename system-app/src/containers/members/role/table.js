@@ -1,8 +1,8 @@
 import { connect } from 'react-redux';
 
-import { startModifyRole, closeRole } from '../../../actions/account/role';
+import { startModifyRole, closeRole } from '../../../actions/members/role';
 
-import RoleTable from '../../../components/account/role/table';
+import RoleTable from '../../../components/members/role/table';
 
 const mapStateToProps = state => ({
   data: state.role.tableData,

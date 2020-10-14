@@ -7,9 +7,9 @@ import Login from '../components/login';
 import Forbidden from '../components/error/forbidden';
 
 import Dashboard from '../components/dashboard';
-import User from '../components/account/user';
-import Role from '../components/account/role';
-import Menu from '../components/account/menu';
+import User from '../components/members/user';
+import Role from '../components/members/role';
+import Menu from '../components/members/menu';
 import Storage from '../components/storage';
 import SysLog from '../components/syslog';
 import NotFound from '../components/error/notfound';
@@ -33,19 +33,19 @@ const AppRouter = () => {
         </AppLayout>
       </PrivateRoute>
       <PrivateRoute exact path="/user">
-        <Redirect to="/account/user" />
+        <Redirect to="/members/user" />
       </PrivateRoute>
-      <PrivateRoute path="/account/user">
+      <PrivateRoute path="/members/user">
         <AppLayout menuKey={['1', 'user']}>
           <User />
         </AppLayout>
       </PrivateRoute>
-      <PrivateRoute path="/account/role">
+      <PrivateRoute path="/members/role">
         <AppLayout menuKey={['1', 'role']}>
           <Role />
         </AppLayout>
       </PrivateRoute>
-      <PrivateRoute path="/account/menu">
+      <PrivateRoute path="/members/menu">
         <AppLayout menuKey={['1', 'menu']}>
           <Menu />
         </AppLayout>

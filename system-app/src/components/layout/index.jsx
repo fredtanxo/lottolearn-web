@@ -24,8 +24,8 @@ const { SubMenu } = Menu;
 const AppLayout = ({ children, menuKey, user, updateCurrentUser }) => {
   const [collapsed, setCollapsed] = useState(false);
 
-  useEffect(() => updateCurrentUser(), []);
-  console.log(updateCurrentUser)
+  useEffect(() => updateCurrentUser(), [updateCurrentUser]);
+
   if (!menuKey) {
     menuKey = ['', '']
   }
@@ -69,13 +69,13 @@ const AppLayout = ({ children, menuKey, user, updateCurrentUser }) => {
           </Menu.Item>
           <SubMenu key="1" icon={<UserOutlined />} title="用户与权限">
             <Menu.Item key="user">
-              <Link to="/account/user">用户管理</Link>
+              <Link to="/members/user">用户管理</Link>
             </Menu.Item>
             <Menu.Item key="role">
-              <Link to="/account/role">角色管理</Link>
+              <Link to="/members/role">角色管理</Link>
             </Menu.Item>
             <Menu.Item key="menu">
-              <Link to="/account/menu">菜单管理</Link>
+              <Link to="/members/menu">菜单管理</Link>
             </Menu.Item>
           </SubMenu>
           <Menu.Item key="2" icon={<DatabaseOutlined />}>

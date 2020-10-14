@@ -1,8 +1,8 @@
 import { connect } from 'react-redux';
 
-import { findAllUsers, startAddUser } from '../../../actions/account/user';
+import { findAllUsers, startAddUser } from '../../../actions/members/user';
 
-import Search from '../../../components/account/user/search';
+import Search from '../../../components/members/user/search';
 
 const mapDispatchToProps = dispatch => ({
   findAllUsers: params => dispatch(findAllUsers(params)),

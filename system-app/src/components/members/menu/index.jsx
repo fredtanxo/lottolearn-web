@@ -1,6 +1,6 @@
 import React from 'react';
 
-import MenuTree from '../../../containers/account/menu/tree';
+import MenuTree from '../../../containers/members/menu/tree';
 
 const Menu = () => {
   return (

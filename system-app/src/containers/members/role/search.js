@@ -1,8 +1,8 @@
 import { connect } from 'react-redux';
 
-import { startAddRole, findAllRoles } from '../../../actions/account/role';
+import { startAddRole, findAllRoles } from '../../../actions/members/role';
 
-import RoleSearch from '../../../components/account/role/search';
+import RoleSearch from '../../../components/members/role/search';
 
 const mapDispatchToProps = dispatch => ({
   startAddRole: () => dispatch(startAddRole()),
