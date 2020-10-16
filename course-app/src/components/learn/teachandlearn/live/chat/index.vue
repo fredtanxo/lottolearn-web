@@ -72,6 +72,14 @@
                 :src="member.userAvatar">
               </el-avatar>
               <span class="course-member-label">{{ member.userNickname }}</span>
+              <el-button
+                v-if="user.id === member.userId"
+                icon="el-icon-edit"
+                circle
+                size="mini"
+                class="member-change-name"
+                @click="changeMyNickname(member.userNickname)">
+              </el-button>
             </div>
           </template>
           <template v-for="member in offlineMembers">
@@ -89,9 +97,26 @@
         <el-button
           slot="reference"
           icon="el-icon-user">
-          成员
+          {{ onlineMembers.length + '/' + members.size }}
         </el-button>
       </el-popover>
+      <el-dialog
+        :visible.sync="editNickname"
+        width="250px">    
+        <el-input
+          v-model="currentNickname"
+          autofocus
+          @keydown.enter.native.prevent="handleChangeNickname">
+        </el-input>
+        <span slot="footer">
+          <el-button
+            type="primary"
+            icon="el-icon-check"
+            @click="handleChangeNickname">
+            完成
+          </el-button>
+        </span>
+      </el-dialog>
     </div>
     <div
       class="dialog-card-wrapper"
@@ -168,7 +193,9 @@ export default {
       hideBadge: true,
       members: new Map(),
       onlineMembers: [],
-      offlineMembers: []
+      offlineMembers: [],
+      currentNickname: '',
+      editNickname: false
     }
   },
   computed: mapState({
@@ -202,6 +229,9 @@ export default {
         case 'MEMBER_LEAVE':
           this.handleMemberLeaveMessage(msg)
           break
+        case 'MEMBER_NICKNAME_CHANGED':
+          this.handleMemberNicknameChanged(msg)
+          break
         case 'CHAT':
           this.handleChatMessage(msg)
           break
@@ -220,17 +250,23 @@ export default {
     },
     // 处理新成员消息
     handleNewMemberMessage(message) {
-      const user = message.userId
-      const member = this.members.get(user)
+      const member = this.members.get(message.userId)
       this.offlineMembers = this.offlineMembers.filter(m => m !== member)
       this.onlineMembers.unshift(member)
     },
     // 处理成员离开消息
     handleMemberLeaveMessage(message) {
-      const user = message.userId
-      const member = this.members.get(user)
+      const member = this.members.get(message.userId)
+      member.userNickname = member.oldNickname
+      this.members.set(message.userId, member)
       this.onlineMembers = this.onlineMembers.filter(m => m !== member)
       this.offlineMembers.unshift(member)
+    },
+    // 处理更名消息
+    handleMemberNicknameChanged(message) {
+      const member = this.members.get(message.userId)
+      member.userNickname = message.content
+      this.onlineMembers = this.onlineMembers.slice()
     },
     // 处理聊天消息
     handleChatMessage(message) {
@@ -373,7 +409,7 @@ export default {
           handleLiveCourseSign({
             userId: this.user.id,
             signId: content.signId,
-            userNickname: this.user.nickname
+            userNickname: this.members.get(this.user.id).userNickname
           })
           .then(response => {
             const code = response.data.code
@@ -414,6 +450,14 @@ export default {
       }
       this.onlineMembers = online
       this.offlineMembers = offline
+    },
+    changeMyNickname(nickname) {
+      this.currentNickname = nickname
+      this.editNickname = true
+    },
+    handleChangeNickname() {
+      this.sendMessage('MEMBER_NICKNAME_CHANGED', this.currentNickname)
+      this.editNickname = false
     }
   },
   mounted() {
@@ -459,7 +503,10 @@ export default {
       .then(response => {
         const data = response.data
         const members = data.payload.data
-        members.forEach(member => this.members.set(member.userId, member))
+        members.forEach(member => this.members.set(member.userId, {
+          ...member,
+          oldNickname: member.userNickname
+        }))
       })
       .finally(() => client.activate())
   },
@@ -549,5 +596,9 @@ export default {
 }
 .course-member-offline {
   filter: opacity(0.5);
+}
+.member-change-name{
+  float: right;
+  right: 8px;
 }
 </style>
