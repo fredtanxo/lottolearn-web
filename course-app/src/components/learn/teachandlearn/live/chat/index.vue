@@ -5,7 +5,6 @@
       class="teacher-tool-wrapper">
       <el-popover
         placement="bottom"
-        width="400"
         trigger="click">
         <div style="text-align: center;">
           <el-button
@@ -43,15 +42,54 @@
       <el-popover
         style="margin-left: 10px;"
         placement="bottom"
-        width="400"
         trigger="click">
         <div style="text-align: center;">
-          <el-button icon="el-icon-magic-stick">随机</el-button>
+          <el-button
+            icon="el-icon-magic-stick"
+            @click="requestElect">
+            随机
+          </el-button>
         </div>
         <el-button
           slot="reference"
           icon="el-icon-chat-dot-square">
           提问
+        </el-button>
+      </el-popover>
+    </div>
+    <div style="float: right;">
+      <el-popover
+        style="margin-left: 10px;"
+        placement="left"
+        trigger="click">
+        <div class="course-members">
+          <template v-for="member in onlineMembers">
+            <div
+              :key="member.id"
+              class="course-member-item">
+              <el-avatar
+                :size="32"
+                :src="member.userAvatar">
+              </el-avatar>
+              <span class="course-member-label">{{ member.userNickname }}</span>
+            </div>
+          </template>
+          <template v-for="member in offlineMembers">
+            <div
+              :key="member.id"
+              class="course-member-item course-member-offline">
+              <el-avatar
+                :size="32"
+                :src="member.userAvatar">
+              </el-avatar>
+              <span class="course-member-label">{{ member.userNickname }}</span>
+            </div>
+          </template>
+        </div>
+        <el-button
+          slot="reference"
+          icon="el-icon-user">
+          成员
         </el-button>
       </el-popover>
     </div>
@@ -102,6 +140,7 @@ import { mapState } from 'vuex'
 import { Client } from '@stomp/stompjs'
 
 import config from '@/config'
+import { findCourseMembers } from '@/api/course'
 import { requestLiveCourseSign, handleLiveCourseSign } from '@/api/learn'
 
 import ChatItem from './item'
@@ -115,6 +154,7 @@ export default {
   },
   data() {
     return {
+      courseId: this.$route.params.courseId,
       connecting: true,
       chatClient: null,
       chatSubscription: null,
@@ -125,13 +165,15 @@ export default {
       chatHistory: [],
       signDisable: false,
       newMessages: 0,
-      hideBadge: true
+      hideBadge: true,
+      members: new Map(),
+      onlineMembers: [],
+      offlineMembers: []
     }
   },
   computed: mapState({
     isTeacher: state => state.course.teacherId === state.user.id,
-    user: state => state.user,
-    courseId: state => state.course.id
+    user: state => state.user
   }),
   methods: {
     toggleDialog() {
@@ -148,14 +190,105 @@ export default {
       const chat = this.chatRef
       this.autoScroll = chat.scrollTop + chat.offsetHeight + 10 >= chat.scrollHeight
     },
+    handleReceiveMessage(message) {
+      const msg = JSON.parse(message.body)
+      switch (msg.type) {
+        case 'MEMBERS':
+          this.handleMembersMessage(msg)
+          break
+        case 'NEW_MEMBER':
+          this.handleNewMemberMessage(msg)
+          break
+        case 'MEMBER_LEAVE':
+          this.handleMemberLeaveMessage(msg)
+          break
+        case 'CHAT':
+          this.handleChatMessage(msg)
+          break
+        case 'SIGN':
+          this.handleSignMessage(msg)
+          break
+        case 'ELECT':
+          this.handleElectMessage(msg)
+          break
+      }
+    },
+    // 处理房间成员列表消息
+    handleMembersMessage(message) {
+      const members = JSON.parse(message.content)
+      this.refreshMembers(members)
+    },
+    // 处理新成员消息
+    handleNewMemberMessage(message) {
+      const user = message.userId
+      const member = this.members.get(user)
+      this.offlineMembers = this.offlineMembers.filter(m => m !== member)
+      this.onlineMembers.unshift(member)
+    },
+    // 处理成员离开消息
+    handleMemberLeaveMessage(message) {
+      const user = message.userId
+      const member = this.members.get(user)
+      this.onlineMembers = this.onlineMembers.filter(m => m !== member)
+      this.offlineMembers.unshift(member)
+    },
+    // 处理聊天消息
+    handleChatMessage(message) {
+      const member = this.members.get(message.userId)
+      this.chatHistory.push({
+        ...message,
+        nickname: member.userNickname,
+        avatar: member.userAvatar,
+        me: message.userId === this.user.id
+      })
+      if (!this.show) {
+        this.newMessages++
+        this.hideBadge = false
+      }
+    },
+    // 处理签到消息
+    handleSignMessage(message) {
+      const member = this.members.get(message.userId)
+      const content = JSON.parse(message.content)
+      if (message.userId === this.user.id) {
+        message.content = `[我发起${content.timeout}秒签到]`
+      } else {
+        message.content = `[${member.userNickname}发起${content.timeout}秒签到]`
+      }
+      this.chatHistory.push({
+        ...message,
+        nickname: member.userNickname,
+        avatar: member.userAvatar,
+        me: message.userId === this.user.id
+      })
+      if (message.userId !== this.user.id) {
+        this.handleSign(member.userNickname, content)
+      }
+    },
+    // 处理提问消息
+    handleElectMessage(message) {
+      const content = JSON.parse(message.content)
+      const member1 = this.members.get(content.userId)
+      const member2 = this.members.get(message.userId)
+      if (member1.userId === this.user.id) {
+        this.$notify.info({
+          title: '提问',
+          message: `${member2.userNickname} 向你发起提问`,
+          duration: 0
+        })
+        message.content = `[${member2.userNickname} 向你发起提问]`
+      } else {
+        message.content = `[${member2.userNickname} 向 ${member1.userNickname} 发起提问]`
+      }
+      this.handleChatMessage(message)
+    },
+    // 发送消息
     sendMessage(type, content) {
       this.chatClient.publish({
         destination: `/in/${this.roomId}`,
         body: JSON.stringify({
           type,
           userId: this.user.id,
-          nickname: this.user.nickname,
-          avatar: this.user.avatar,
           content,
           roomId: this.roomId
         })
@@ -175,8 +308,6 @@ export default {
         requestLiveCourseSign(this.courseId, timeout, {
           type: 'SIGN',
           userId: this.user.id,
-          nickname: this.user.nickname,
-          avatar: this.user.avatar,
           roomId: this.roomId
         })
         .then(() => {
@@ -192,13 +323,23 @@ export default {
     // 发起提问
     // content的定义如下：
     // {
-    //   userId: "123",
-    //   nickanme: "fred"
+    //   userId: 1
     // }
-    requestElect(userId) {
+    requestElect() {
       if (this.isTeacher) {
-        const content = JSON.stringify({ userId })
+        const mLen = this.onlineMembers.length
+        if (mLen <= 1) {
+          this.$message.error('房间内没有其他在线成员')
+          return
+        }
+        let member
+        do {
+          const pos = Number.parseInt(Math.random() * mLen)
+          member = this.onlineMembers[pos]
+        } while (member.userId === this.user.id)
+        const content = JSON.stringify({ userId: member.userId })
         this.sendMessage('ELECT', content)
+        this.$message.success(`向 ${member.userNickname} 发起提问`)
       }
     },
     // 签到
@@ -245,7 +386,34 @@ export default {
           })
           .catch(() => this.$message.error('网络错误'))
         }
-      });
+      })
+    },
+    // 刷新成员列表
+    refreshMembers(members) {
+      const onlineMap = new Map()
+      members.forEach(member => onlineMap.set(member.userId, member.userNickname))
+
+      const online = []
+      const offline = []
+      const entries = this.members.entries()
+      let entry = entries.next()
+      while (!entry.done) {
+        const k = entry.value[0]
+        let v = entry.value[1]
+        if (onlineMap.has(k)) {
+          const e = onlineMap.get(k)
+          if (v.userNickname !== e) {
+            v = { ...v, userNickname: e }
+            this.members.set(k, v)
+          }
+          online.push(v)
+        } else {
+          offline.push(v)
+        }
+        entry = entries.next()
+      }
+      this.onlineMembers = online
+      this.offlineMembers = offline
     }
   },
   mounted() {
@@ -261,52 +429,17 @@ export default {
     })
     this.chatClient = client
 
-    client.onConnect = frame => {
-      console.debug('onConnect:', frame)
-      this.connecting = false
+    client.onConnect = () => {
       // 订阅房间
-      const subscription = client.subscribe(`/out/${this.roomId}`, message => {
-        const msg = JSON.parse(message.body)
-        const me = msg.userId === this.user.id
-        let content
-        switch (msg.type) {
-          case 'CHAT':
-            this.chatHistory.push({
-              ...msg,
-              me
-            })
-            if (!this.show) {
-              this.newMessages++
-              this.hideBadge = false
-            }
-            break
-          case 'SIGN':
-            content = JSON.parse(msg.content)
-            console.log(content)
-            if (msg.userId === this.user.id) {
-              msg.content = `[我发起 ${content.timeout} 秒签到]`
-            } else {
-              msg.content = `[${msg.nickname} 发起 ${content.timeout} 秒签到]`
-            }
-            this.chatHistory.push({
-              ...msg,
-              me
-            })
-            if (msg.userId !== this.user.id) {
-              this.handleSign(msg.nickname, content)
-            }
-            break
-          case 'ELECT':
-            if (msg.content === this.user.id) {
-              msg.content = `[${msg.nickname} 向你发起提问]`
-            } else {
-              msg.content = `[${msg.nickname} 发起提问]`
-            }
-            break
-        }
-        
-      }, { id: this.roomId })
+      const subscription = client.subscribe(
+        `/out/${this.roomId}`,
+        this.handleReceiveMessage,
+        { id: this.roomId, nickname: this.user.nickname }
+      )
+      this.connecting = false
       this.chatSubscription = subscription
+
+      this.sendMessage('NEW_MEMBER', null)
     }
 
     client.onWebSocketClose = () => this.connecting = true
@@ -318,10 +451,17 @@ export default {
       console.error('stompError', frame.body)
     }
 
-    client.activate()
-
     // 聊天页面滚动
     this.chatRef.addEventListener('scroll', this.handleScroll)
+
+    // 先获取成员列表再激活client
+    findCourseMembers(this.courseId)
+      .then(response => {
+        const data = response.data
+        const members = data.payload.data
+        members.forEach(member => this.members.set(member.userId, member))
+      })
+      .finally(() => client.activate())
   },
   updated() {
     // 由于Vue的异步更新机制，需要在组件完成更新之后再作出滚动，
@@ -364,7 +504,7 @@ export default {
   height: 75vh;
   bottom: calc(50px - 75vh);
   right: 32px;
-  transition: .32s cubic-bezier(0.21, 0.76, 1, 0.99);
+  transition: .35s ease-out;
 }
 .dialog-show {
   bottom: 0 !important;
@@ -385,5 +525,29 @@ export default {
 }
 .chat-content {
   font-size: 14px;
+}
+
+.course-members {
+  min-width: 200px;
+  max-height: 80vh;
+  overflow: auto;
+}
+.course-member-item {
+  padding: 13px;
+  margin: 10px 0;
+  border-radius: 4px;
+  border: 1px solid #efefef;
+  transition: all .2s ease-out;
+}
+.course-member-item:hover {
+  color: #409eff;
+  border: 1px solid #c6e2ff;
+  background-color: #ecf5ff;
+}
+.course-member-label {
+  margin-left: 15px;
+}
+.course-member-offline {
+  filter: opacity(0.5);
 }
 </style>
