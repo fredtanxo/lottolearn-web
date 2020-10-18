@@ -95,7 +95,7 @@
 </template>
 
 <script>
-import { mapState, mapActions } from 'vuex'
+import { mapActions, mapGetters } from 'vuex'
 
 import { findCourseChapters, addChapter } from '@/api/learn'
 
@@ -129,10 +129,7 @@ export default {
       }
     }
   },
-  computed: mapState({
-    isTeacher: state => state.course.teacherId === state.user.id,
-    nickname: state => state.user.nickname
-  }),
+  computed: mapGetters(['isTeacher', 'nickname']),
   methods: {
     ...mapActions(['updateLearning']),
     queryCourseChapters() {

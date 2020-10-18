@@ -113,7 +113,7 @@
 // JavaScript code is modified from the mediasoup official demo project:
 // https://github.com/versatica/mediasoup-demo
 // under the MIT license.
-import { mapState, mapActions } from 'vuex'
+import { mapState, mapActions, mapGetters } from 'vuex'
 import { Device } from 'mediasoup-client'
 import { Peer, WebSocketTransport } from 'protoo-client'
 
@@ -164,8 +164,8 @@ export default {
     displayPeers() {
       return this.activePeers.concat(this.inactivePeers)
     },
+    ...mapGetters(['isTeacher']),
     ...mapState({
-      isTeacher: state => state.course.teacherId === state.user.id,
       user: state => state.user,
       courseId: state => state.course.id,
       teacherId: state => state.course.teacherId,

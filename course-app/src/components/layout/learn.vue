@@ -30,7 +30,7 @@
 </template>
 
 <script>
-import { mapState, mapActions } from 'vuex'
+import { mapState, mapActions, mapGetters } from 'vuex'
 
 import BasicFramework from './index'
 
@@ -49,11 +49,14 @@ export default {
       activeMenu: ''
     }
   },
-  computed: mapState({
-    courseName: state => state.learning ? state.learning : state.course.name,
-    isTeacher: state => state.course.teacherId === state.user.id,
-    learning: state => state.learning
-  }),
+  computed: {
+    ...mapGetters(['isTeacher']),
+    ...mapState({
+      courseName: state => state.learning ? state.learning : state.course.name,
+      learning: state => state.learning
+    })
+  }
+  ,
   methods: {
     ...mapActions(['updateCourse']),
     goBack() {

@@ -86,7 +86,7 @@
 </template>
 
 <script>
-import { mapState } from 'vuex'
+import { mapGetters } from 'vuex'
 
 import { findCourseAnnouncements, addAnnouncement } from '@/api/learn'
 
@@ -118,10 +118,7 @@ export default {
       }
     }
   },
-  computed: mapState({
-    isTeacher: state => state.course.teacherId === state.user.id,
-    nickname: state => state.user.nickname
-  }),
+  computed: mapGetters(['isTeacher', 'nickname']),
   methods: {
     queryCourseAnnouncements() {
       this.loading = true

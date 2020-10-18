@@ -63,7 +63,7 @@
 </template>
 
 <script>
-import { mapState } from 'vuex'
+import { mapGetters } from 'vuex'
 
 import { Uppy } from '@uppy/core'
 import Dashboard from '@uppy/dashboard'
@@ -93,9 +93,7 @@ export default {
       files: []
     }
   },
-  computed: mapState({
-    isTeacher: state => state.course.teacherId === state.user.id
-  }),
+  computed: mapGetters(['isTeacher']),
   methods: {
     refreshChapterFiles() {
       this.filesLoading = true

@@ -168,7 +168,7 @@
 </template>
 
 <script>
-import { mapActions, mapState } from 'vuex'
+import { mapActions, mapGetters, mapState } from 'vuex'
 import { Client } from '@stomp/stompjs'
 
 import config from '@/config'
@@ -206,12 +206,14 @@ export default {
       editNickname: false
     }
   },
-  computed: mapState({
-    isTeacher: state => state.course.teacherId === state.user.id,
-    user: state => state.user,
-    ready: state => state.ready,
-    members: state => state.members
-  }),
+  computed: {
+    ...mapGetters(['isTeacher']),
+    ...mapState({
+      user: state => state.user,
+      ready: state => state.ready,
+      members: state => state.members
+    })
+  },
   watch: {
     ready(val) {
       if (val && !this.initialized) {

@@ -239,7 +239,7 @@
 </template>
 
 <script>
-import { mapState } from 'vuex'
+import { mapGetters } from 'vuex'
 
 import {
   findCourseById,
@@ -283,9 +283,7 @@ export default {
       editTooltip: '点击编辑'
     }
   },
-  computed: mapState({
-    isTeacher: state => state.course.teacherId === state.user.id
-  }),
+  computed: mapGetters(['isTeacher']),
   methods: {
     refreshCourse() {
       this.courseLoading = true

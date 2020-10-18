@@ -63,7 +63,7 @@ import shaka from 'shaka-player/dist/shaka-player.ui'
 import FilesView from '@/components/common/files'
 
 import { findChapterMedia } from '@/api/resource'
-import { mapState, mapActions } from 'vuex'
+import { mapActions, mapGetters } from 'vuex'
 
 export default {
   components: {
@@ -85,9 +85,7 @@ export default {
       filesDrawer: false
     }
   },
-  computed: mapState({
-    isTeacher: state => state.course.teacherId === state.user.id
-  }),
+  computed: mapGetters(['isTeacher']),
   watch: {
     mediaSrc(val) {
       if (this.player && val) {

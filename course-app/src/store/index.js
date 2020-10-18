@@ -1,5 +1,6 @@
 import mutations from './mutations'
 import actions from './actions'
+import getters from './getters'
 
 const state = {
   user: {}, // 存储当前用户
@@ -14,5 +15,6 @@ const state = {
 export default {
   state,
   mutations,
-  actions
+  actions,
+  getters
 }

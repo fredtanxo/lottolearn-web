@@ -207,7 +207,7 @@
 </template>
 
 <script>
-import { mapState, mapActions } from 'vuex'
+import { mapState, mapActions, mapGetters } from 'vuex'
 
 import Cookies from 'js-cookie'
 
@@ -266,11 +266,13 @@ export default {
       }
     }
   },
-  computed: mapState({
-    userId: state => state.user.id,
-    nickname: state => state.user.nickname,
-    avatar: state => state.user.avatar
-  }),
+  computed: {
+    ...mapGetters(['nickname']),
+    ...mapState({
+      userId: state => state.user.id,
+      avatar: state => state.user.avatar
+    })
+  },
   methods: {
     ...mapActions(['updateUser']),
     handleCommand(command) {

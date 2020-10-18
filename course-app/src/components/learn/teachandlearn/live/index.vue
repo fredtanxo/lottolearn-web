@@ -61,7 +61,7 @@
 <script>
 import Sign from './sign'
 
-import { mapActions, mapState } from 'vuex'
+import { mapActions, mapGetters } from 'vuex'
 
 import {
   requestLiveCourse,
@@ -88,9 +88,7 @@ export default {
       timer: null
     }
   },
-  computed: mapState({
-    isTeacher: state => state.course.teacherId === state.user.id
-  }),
+  computed: mapGetters(['isTeacher']),
   methods: {
     ...mapActions(['setMembers']),
     handleLiveCourse() {
