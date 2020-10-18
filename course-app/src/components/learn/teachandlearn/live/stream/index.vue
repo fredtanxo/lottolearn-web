@@ -1,8 +1,11 @@
 <template>
   <div
     class="stream-container"
-    ref="streamContainer">
-    <el-button-group class="stream-controller">
+    ref="streamContainer"
+    v-loading="canPlay && !initialized">
+    <el-button-group
+      class="stream-controller"
+      :style="`visibility: ${this.initialized ? 'visible' : 'hidden'}`">
       <!-- 麦克风 -->
       <el-button
         v-if="audio"
@@ -42,32 +45,66 @@
     </el-button-group>
     <div class="stream-video-wrapper">
       <div
-        v-for="(group, index) in displayPeers"
-        :key="index"
-        class="stream-video-row-wrapper">
+        ref="streamVideoAllRef"
+        class="stream-video-all"
+        @mouseenter="handleShowPagination"
+        @mouseleave="() => this.pagination = false">
+        <el-button
+          ref="prevRef"
+          class="stream-video-pagination pagination-left"
+          type="primary"
+          circle
+          size="mini"
+          icon="el-icon-arrow-left"
+          :style="`display: ${this.pagination ? 'block' : 'none'}`"
+          @click="handlePrev">
+        </el-button>
+        <div class="video-view-wrapper" ref="videoViewWrapperRef">
           <video-view
-            v-for="peer in group"
+            v-for="(peer, index) in displayPeers"
             :key="peer.id"
+            :ref="`videoViewRef${index}`"
             :audioTrack="peer.audioTrack"
             :videoTrack="peer.videoTrack"
             :nickname="peer.nickname"
             :avatar="peer.avatar"
-            :divide="displayPeers.length > 0 ? 3 : group.length"
-            :isMe="peer.id === user.id" />
+            :isMe="peer.id === user.id"
+            :isOne="false"
+            :peer="peer"
+            :selectMainSpeaker="selectMainSpeaker" />
+        </div>
+        <el-button
+          ref="nextRef"
+          type="primary"
+          class="stream-video-pagination pagination-right"
+          circle
+          size="mini"
+          icon="el-icon-arrow-right"
+          :style="`display: ${this.pagination ? 'block' : 'none'}`"
+          @click="handleNext">
+        </el-button>
+      </div>
+      <div class="stream-video-one">
+        <el-button
+          v-if="!canPlay"
+          type="primary"
+          icon="el-icon-right"
+          style="display: block; margin: 0 auto;"
+          @click="init">
+          进入直播
+        </el-button>
+        <video-view
+          v-if="mainSpeaker"
+          :audioTrack="mainSpeaker.audioTrack"
+          :videoTrack="mainSpeaker.videoTrack"
+          :nickname="mainSpeaker.nickname"
+          :avatar="mainSpeaker.avatar"
+          :isMe="mainSpeaker.id === user.id"
+          :isOne="true"
+          :peer="peer"
+          :selectMainSpeaker="selectMainSpeaker" />
       </div>
     </div>
-    <el-button-group class="stream-video-pagination">
-      <el-button
-        :disabled="noPrev"
-        icon="el-icon-arrow-left"
-        @click="handlePrev">
-      </el-button>
-      <el-button
-        :disabled="noNext"
-        icon="el-icon-arrow-right"
-        @click="handleNext">
-      </el-button>
-    </el-button-group>
   </div>
 </template>
 
@@ -93,6 +130,8 @@ export default {
   },
   data() {
     return {
+      initialized: false,
+      canPlay: false,
       timer: null,
       audio: false,
       video: false,
@@ -100,6 +139,8 @@ export default {
       serverUrl: '',
       activePeers: [],
       inactivePeers: [], // [{ id, avatar, nickname, audioTrack, videoTrack }]
+      mainSpeaker: undefined,
+      mainSpeakerCallback: undefined,
       peer: null, // 当前用户
       me: null,
       device: null,
@@ -113,43 +154,44 @@ export default {
         screenProducer: null,
       },
       peerConsumers: new Map(), // (peerId, Set(consumer))
-      page: 0,
-      size: 9
+      pagination: false,
+      observer: undefined, // ResizeObserver
+      pageSize: 1, // 一次滚动的数量
+      parentRef: undefined, //成员列表父容器
+      childRef: undefined // 成员列表
     }
   },
   computed: {
     displayPeers() {
-      const peersPre = this.activePeers.concat(this.inactivePeers)
-      let start = this.page * this.size
-
-      while (start > 0 && start >= peersPre.length) {
-        this.page--
-        start = this.page * this.size
-      }
-
-      const result = []
-      for (let i = 0; i < this.size && i + start < peersPre.length; i++) {
-        if (i % 3 === 0) {
-          result.push([])
-        }
-        result[result.length - 1].push(peersPre[start + i])
-      }
-      return result
-    },
-    noPrev() {
-      return this.page <= 0
-    },
-    noNext() {
-      const total = this.activePeers.length + this.inactivePeers.length
-      return (this.page + 1) * this.size >= total
+      return this.activePeers.concat(this.inactivePeers)
     },
     ...mapState({
       isTeacher: state => state.course.teacherId === state.user.id,
       user: state => state.user,
-      courseId: state => state.course.id
+      courseId: state => state.course.id,
+      teacherId: state => state.course.teacherId
     })
   },
   methods: {
+    init() {
+      this.canPlay = true
+      if (!this.user.id) { // 未拉取到用户数据
+        setTimeout(() => {
+          this.init()
+        }, 800)
+        return
+      }
+      this.serverUrl = `wss://${config.liveBaseUrl}${config.streamBaseUri}?roomId=${this.roomId}&peerId=${this.user.id}`
+      const protooTransport = new WebSocketTransport(this.serverUrl)
+      this.peer = new Peer(protooTransport)
+      this.peer.on('open', this.handleOpen)
+      this.peer.on('failed', this.handleError)
+      this.peer.on('request', this.handleRequest)
+      this.peer.on('notification', this.handleNotification)
+      this.peer.on('disconnected', this.handleDisconnected)
+      this.peer.on('close', this.handleClose)
+      this.initialized = true
+    },
     handleError(error) {
       this.$message.error('连接失败')
       console.error(error)
@@ -276,10 +318,12 @@ export default {
 
       this.inactivePeers.push(...peers)
 
+      this.refreshVideoViewArrangements()
+
       // 定时向服务端发送心跳，服务端不处理，仅用于维持连接状态
       this.timer = setInterval(() => {
         this.peer.notify('ping')
-      }, 13 * 1000)
+      }, 30 * 1000)
     },
     handleRequest(request, accept, reject) {
       switch (request.method) {
@@ -321,7 +365,6 @@ export default {
       let operationPeer = this.activePeers.find(peer => peer.id === peerId)
 
       const active = !!operationPeer
-      
       if (!active) {
         operationPeer = this.inactivePeers.find(peer => peer.id === peerId)
       }
@@ -337,10 +380,30 @@ export default {
 
       if (!active) {
         this.inactivePeers = this.inactivePeers.filter(peer => peer.id !== peerId)
-        this.activePeers.unshift(operationPeer)
+        if (this.activePeers.length) {
+          let index = 1
+          switch (consumer.kind) {
+            case 'audio':
+              index = this.activePeers.findIndex(p => !p.videoTrack)
+              if (index === -1) {
+                index = this.activePeers.length
+              }
+              break
+            case 'video':
+              if (!this.mainSpeaker.videoTrack) {
+                index = 0
+              }
+              break
+          }
+          this.activePeers.splice(index, 0, operationPeer)
+        } else {
+          this.activePeers.unshift(operationPeer)
+        }
       } else {
         this.activePeers = this.activePeers.slice()
       }
+
+      this.refreshVideoViewArrangements()
 
       accept()
     },
@@ -463,10 +526,9 @@ export default {
             displaySurface: 'monitor',
             logicalSurface: true,
             cursor: true,
-            width: { ideal: 1920 },
-            height: { ideal: 1080 },
-            frameRate: { ideal: 60 },
-            aspectRatio: { ideal: 1.777777778 } // 16:9
+            width: { ideal: 1280 },
+            height: { ideal: 720 },
+            frameRate: { ideal: 60 }
           }
         })
         const track = stream.getVideoTracks()[0]
@@ -545,7 +607,24 @@ export default {
     },
     pushMeToFront() {
       this.inactivePeers = this.inactivePeers.filter(peer => peer !== this.me)
-      this.activePeers.unshift(this.me)
+      if (this.activePeers.length) {
+        let index = 1
+        if (!this.me.videoTrack) {
+          index = this.activePeers.findIndex(p => !p.videoTrack)
+          if (index === -1) {
+            index = this.activePeers.length
+          }
+        } else {
+          if (!this.mainSpeaker.videoTrack) {
+            index = 0
+          }
+        }
+        this.activePeers.splice(index, 0, this.me)
+      } else {
+        this.activePeers.unshift(this.me)
+      }
+
+      this.refreshVideoViewArrangements()
     },
     pushMeToBack() {
       if (!(this.audio || this.video || this.screen)) {
@@ -554,6 +633,7 @@ export default {
       } else {
         this.activePeers = this.activePeers.slice()
       }
+      this.refreshVideoViewArrangements()
     },
     handleNotification(notification) {
       switch (notification.method) {
@@ -577,11 +657,13 @@ export default {
     handleNewPeer(notification) {
       const newPeer = notification.data
       this.inactivePeers.push(newPeer)
+      this.refreshVideoViewArrangements()
     },
     handlePeerClosed(notification) {
       const { peerId } = notification.data
       this.activePeers = this.activePeers.filter(peer => peer.id !== peerId)
       this.inactivePeers = this.inactivePeers.filter(peer => peer.id !== peerId)
+      this.refreshVideoViewArrangements()
     },
     handleConsumerClosed(notification) {
       const { consumerId, peerId } = notification.data
@@ -605,6 +687,7 @@ export default {
         } else {
           this.activePeers = this.activePeers.slice()
         }
+        this.refreshVideoViewArrangements()
       }
     },
     handleConsumerPaused(notification) {
@@ -636,31 +719,98 @@ export default {
         this.transports.receiveTransport.close()
       }
     },
-    handlePrev() {
-      if (this.noPrev) {
-        return
+    handleShowPagination() {
+      if (this.childRef.offsetWidth > this.parentRef.offsetWidth) {
+        this.pagination = true
       }
-      this.page--
     },
-    handleNext() {
-      if (this.noNext) {
+    // 上一页
+    handlePrev() {
+      if (this.childRef.offsetWidth < this.parentRef.offsetWidth) {
         return
       }
-      this.page++
+      const match = this.childRef.style.transform.match(/translateX\((\d+\.?\d+)px\)/)
+      const oldPos = match ? match[1] : 0
+      const newPos = oldPos + this.pageSize * 166
+      this.childRef.style.transform = `translateX(${newPos > 0 ? 0 : newPos}px)`
+    },
+    // 下一页
+    handleNext() {
+      if (this.childRef.offsetWidth < this.parentRef.offsetWidth) {
+        return
+      }
+      const match = this.childRef.style.transform.match(/translateX\((\d+\.?\d+)px\)/)
+      const oldPos = match ? match[1] : 0
+      const newPos = oldPos - this.pageSize * 166
+      const diff = this.childRef.offsetWidth - this.parentRef.offsetWidth
+      const minPos = diff < 0 ? 0 : -diff
+      this.childRef.style.transform = `translateX(${newPos < minPos ? minPos : newPos}px)`
+    },
+    // 选择放大显示的成员
+    selectMainSpeaker(peer, callback) {
+      if (this.mainSpeakerCallback) {
+        this.mainSpeakerCallback()
+      }
+      this.mainSpeakerCallback = callback
+      this.mainSpeaker = peer
+    },
+    // 处理容器宽度变更事件
+    handleObserve() {
+      let timer = undefined
+      return (entries) => {
+        if (timer) {
+          clearTimeout(timer)
+        }
+        timer = setTimeout(() => {
+          const width = entries[0].contentRect.width
+          let sz = Number.parseInt(width / 166) + 1
+          if (sz <= 0) {
+            sz = 1
+          }
+          this.pageSize = sz
+          if (this.childRef.offsetWidth < width) {
+            this.childRef.style.transform = `translateX(${(width - this.childRef.offsetWidth) / 2}px`
+          } else {
+            const match = this.childRef.style.transform.match(/translateX\((\d+\.?\d+)px\)/)
+            if (match && match[1] > 0) {
+              this.childRef.style.transform = `translateX(0px)`
+            }
+          }
+        }, 500) // 延迟0.5秒减少不必要计算
+      }
+    },
+    // 刷新成员视图布局
+    refreshVideoViewArrangements() {
+      this.$nextTick(() => {
+        if (this.childRef.offsetWidth < this.parentRef.offsetWidth) {
+          this.childRef.style.transform = `translateX(${(this.parentRef.offsetWidth - this.childRef.offsetWidth) / 2}px`
+        }
+      })
     }
   },
   mounted() {
-    this.serverUrl = `wss://${config.liveBaseUrl}${config.streamBaseUri}?roomId=${this.roomId}&peerId=${this.user.id}`
-    const protooTransport = new WebSocketTransport(this.serverUrl)
-    this.peer = new Peer(protooTransport)
-    this.peer.on('open', this.handleOpen)
-    this.peer.on('failed', this.handleError)
-    this.peer.on('request', this.handleRequest)
-    this.peer.on('notification', this.handleNotification)
-    this.peer.on('disconnected', this.handleDisconnected)
-    this.peer.on('close', this.handleClose)
+    document.documentElement.scrollTo({
+      top: 60,
+      behavior: 'smooth'
+    })
+
+    this.observer = new ResizeObserver(this.handleObserve())
+    this.observer.observe(this.$refs.streamVideoAllRef)
+
+    this.parentRef = this.$refs.streamVideoAllRef
+    this.childRef = this.$refs.videoViewWrapperRef
+  },
+  updated() {
+    if (!this.mainSpeaker || !this.mainSpeaker.videoTrack) {
+      if (this.$refs.videoViewRef0) {
+        this.$refs.videoViewRef0[0].handleSelectMainSpeaker()
+      }
+    }
   },
   async beforeDestroy() {
+    if (this.observer) {
+      this.observer.disconnect()
+    }
     if (this.timer) {
       clearInterval(this.timer)
     }
@@ -692,20 +842,47 @@ export default {
   margin-bottom: 10px;
 }
 .stream-video-pagination {
+  position: absolute;
+  top: calc(50px - 14px);
+  z-index: 20;
+}
+.pagination-left {
+  left: 10px;
+}
+.pagination-right {
+  right: 10px;
+}
+.pagination-show {
+  display: block;
+}
+
+.stream-video-all {
+  position: relative;
+  height: 104px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-align: center;
+}
+
+.stream-video-one {
+  margin-top: 4px;
   display: flex;
-  justify-content: center;
-  margin-top: 10px;
+  align-items: center;
+  justify-self: center;
+  height: calc(100vh - 290px);
 }
 
 .stream-video-wrapper {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
   background-color: #313436;
-  min-height: 75vh;
+  height: calc(100vh - 180px);
 }
 .stream-video-row-wrapper {
   display: flex;
   justify-content: center;
+}
+
+.video-view-wrapper {
+  position: absolute;
+  transition: transform 0.45s ease-out;
 }
 </style>

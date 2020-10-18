@@ -8,7 +8,7 @@
           is-dot
           :hidden="true"
           slot="label">
-          <span>章节学习</span>
+          <span>章节</span>
         </el-badge>
       </el-tab-pane>
       <el-tab-pane name="live">
@@ -16,7 +16,7 @@
           is-dot
           :hidden="viewed ? true : !live"
           slot="label">
-          <span>课程直播</span>
+          <span>直播</span>
         </el-badge>
       </el-tab-pane>
     </el-tabs>
@@ -36,6 +36,15 @@ export default {
       activeTab: 'chapter',
       viewed: false,
       live: false
+    }
+  },
+  watch: {
+    $route(val) {
+      if (val.name === 'live') {
+        this.activeTab = 'live'
+      } else {
+        this.activeTab = 'chapter'
+      }
     }
   },
   methods: {
