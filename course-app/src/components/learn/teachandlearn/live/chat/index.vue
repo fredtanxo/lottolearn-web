@@ -323,7 +323,7 @@ export default {
       }
       const member = this.members.get(message.userId)
       this.offlineMembers = this.offlineMembers.filter(m => m !== member)
-      this.onlineMembers.unshift(member)
+      this.onlineMembers.splice(1, 0, member)
     },
     // 处理成员离开消息
     handleMemberLeaveMessage(message) {
