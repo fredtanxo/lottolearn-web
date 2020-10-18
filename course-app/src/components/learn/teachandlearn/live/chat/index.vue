@@ -1,9 +1,10 @@
 <template>
   <div>
     <div
-      v-if="isTeacher"
+      v-if="isTeacher && initialized"
       class="teacher-tool-wrapper">
       <el-popover
+        v-if="initialized"
         placement="bottom"
         trigger="click">
         <div style="text-align: center;">
@@ -57,7 +58,9 @@
         </el-button>
       </el-popover>
     </div>
-    <div style="float: right;">
+    <div
+      v-if="initialized"
+      class="course-members-wrapper">
       <el-popover
         style="margin-left: 10px;"
         placement="left"
@@ -65,7 +68,7 @@
         <div class="course-members">
           <template v-for="member in onlineMembers">
             <div
-              :key="member.id"
+              :key="member.userId"
               class="course-member-item">
               <el-avatar
                 :size="32"
@@ -84,7 +87,7 @@
           </template>
           <template v-for="member in offlineMembers">
             <div
-              :key="member.id"
+              :key="member.userId"
               class="course-member-item course-member-offline">
               <el-avatar
                 :size="32"
@@ -102,10 +105,12 @@
       </el-popover>
       <el-dialog
         :visible.sync="editNickname"
+        :close-on-click-modal="false"
         width="250px">    
         <el-input
           v-model="currentNickname"
           autofocus
+          clearable
           @keydown.enter.native.prevent="handleChangeNickname">
         </el-input>
         <span slot="footer">
@@ -119,8 +124,9 @@
       </el-dialog>
     </div>
     <div
+      ref="dialog"
       class="dialog-card-wrapper"
-      ref="dialog">
+      :style="`display: ${this.initialized ? 'block' : 'none'}`">
       <el-card
         class="dialog-card"
         style="height: 75vh;"
@@ -129,6 +135,7 @@
             slot="header"
             class="dialog-header"
             @click="toggleDialog">
+            <i class="el-icon-chat-dot-square"></i>
             对话
             <el-badge
               :value="newMessages"
@@ -161,7 +168,7 @@
 </template>
 
 <script>
-import { mapState } from 'vuex'
+import { mapActions, mapState } from 'vuex'
 import { Client } from '@stomp/stompjs'
 
 import config from '@/config'
@@ -179,6 +186,8 @@ export default {
   },
   data() {
     return {
+      initialized: false,
+      me: null,
       courseId: this.$route.params.courseId,
       connecting: true,
       chatClient: null,
@@ -191,7 +200,6 @@ export default {
       signDisable: false,
       newMessages: 0,
       hideBadge: true,
-      members: new Map(),
       onlineMembers: [],
       offlineMembers: [],
       currentNickname: '',
@@ -200,9 +208,66 @@ export default {
   },
   computed: mapState({
     isTeacher: state => state.course.teacherId === state.user.id,
-    user: state => state.user
+    user: state => state.user,
+    ready: state => state.ready,
+    members: state => state.members
   }),
+  watch: {
+    ready(val) {
+      if (val && !this.initialized) {
+        this.init()
+      }
+    }
+  },
   methods: {
+    ...mapActions(['setChatReady', 'setMembers']),
+    init() {
+      if (!this.user.id) { // 未拉取到用户数据
+        setTimeout(() => {
+          this.init()
+        }, 800)
+        return
+      }
+      const token = sessionStorage.getItem(config.accessTokenKey)
+      const client = new Client({
+        brokerURL: `wss://${config.liveBaseUrl}${config.chatBaseUri}/classroom`,
+        connectHeaders: {
+          user: this.user.nickname,
+          authorization: token
+        }
+      })
+      this.chatClient = client
+
+      client.onConnect = () => {
+        // 将自己放入房间
+        const me = this.members.get(this.user.id)
+        this.onlineMembers.unshift(me)
+        this.me = me
+        // 订阅房间
+        const subscription = client.subscribe(
+          `/out/${this.roomId}`,
+          this.handleReceiveMessage,
+          { id: this.roomId, nickname: this.user.nickname }
+        )
+        this.connecting = false
+        this.chatSubscription = subscription
+
+        this.sendMessage('NEW_MEMBER', null)
+      }
+
+      client.onWebSocketClose = () => this.connecting = true
+
+      client.onDisconnect = () => this.connecting = true
+
+      client.onStompError = frame => {
+        this.$message.error(frame.headers['message'])
+        console.error('stompError', frame.body)
+      }
+
+      client.activate()
+
+      this.initialized = true
+    },
     toggleDialog() {
       if (this.show) {
         this.$refs.dialog.classList.remove('dialog-show')
@@ -250,6 +315,9 @@ export default {
     },
     // 处理新成员消息
     handleNewMemberMessage(message) {
+      if (message.userId === this.user.id) {
+        return
+      }
       const member = this.members.get(message.userId)
       this.offlineMembers = this.offlineMembers.filter(m => m !== member)
       this.onlineMembers.unshift(member)
@@ -435,19 +503,21 @@ export default {
       let entry = entries.next()
       while (!entry.done) {
         const k = entry.value[0]
-        let v = entry.value[1]
-        if (onlineMap.has(k)) {
-          const e = onlineMap.get(k)
-          if (v.userNickname !== e) {
-            v = { ...v, userNickname: e }
-            this.members.set(k, v)
+        if (k !== this.me.userId) {
+          let v = entry.value[1]
+          if (onlineMap.has(k)) {
+            const e = onlineMap.get(k)
+            if (v.userNickname !== e) {
+              v.userNickname = e
+            }
+            online.push(v)
+          } else {
+            offline.push(v)
           }
-          online.push(v)
-        } else {
-          offline.push(v)
         }
         entry = entries.next()
       }
+      online.unshift(this.me)
       this.onlineMembers = online
       this.offlineMembers = offline
     },
@@ -458,42 +528,11 @@ export default {
     handleChangeNickname() {
       this.sendMessage('MEMBER_NICKNAME_CHANGED', this.currentNickname)
       this.editNickname = false
+      this.$message.success(`已更名为：${this.currentNickname}`)
     }
   },
   mounted() {
     this.chatRef = this.$refs.chat
-
-    const token = sessionStorage.getItem(config.accessTokenKey)
-    const client = new Client({
-      brokerURL: `wss://${config.liveBaseUrl}${config.chatBaseUri}/classroom`,
-      connectHeaders: {
-        user: this.user.nickname,
-        authorization: token
-      }
-    })
-    this.chatClient = client
-
-    client.onConnect = () => {
-      // 订阅房间
-      const subscription = client.subscribe(
-        `/out/${this.roomId}`,
-        this.handleReceiveMessage,
-        { id: this.roomId, nickname: this.user.nickname }
-      )
-      this.connecting = false
-      this.chatSubscription = subscription
-
-      this.sendMessage('NEW_MEMBER', null)
-    }
-
-    client.onWebSocketClose = () => this.connecting = true
-
-    client.onDisconnect = () => this.connecting = true
-
-    client.onStompError = frame => {
-      this.$message.error(frame.headers['message'])
-      console.error('stompError', frame.body)
-    }
 
     // 聊天页面滚动
     this.chatRef.addEventListener('scroll', this.handleScroll)
@@ -507,8 +546,13 @@ export default {
           ...member,
           oldNickname: member.userNickname
         }))
+        this.setChatReady(true)
       })
-      .finally(() => client.activate())
+      .finally(() => {
+        if (this.ready) {
+          this.init()
+        }
+      })
   },
   updated() {
     // 由于Vue的异步更新机制，需要在组件完成更新之后再作出滚动，
@@ -525,6 +569,7 @@ export default {
     if (this.chatClient) {
       this.chatClient.deactivate()
     }
+    this.setChatReady(false)
   }
 }
 </script>
@@ -550,11 +595,12 @@ export default {
   width: 300px;
   height: 75vh;
   bottom: calc(50px - 75vh);
-  right: 32px;
+  right: -150px;
   transition: .35s ease-out;
 }
 .dialog-show {
   bottom: 0 !important;
+  right: 0 !important;
 }
 .chat-item-wrapper {
   padding: 20px 15px 0;
@@ -574,6 +620,11 @@ export default {
   font-size: 14px;
 }
 
+.course-members-wrapper {
+  position: absolute;
+  right: 20px;
+  top: 132px;
+}
 .course-members {
   min-width: 200px;
   max-height: 80vh;

@@ -2,7 +2,7 @@
   <div
     class="stream-container"
     ref="streamContainer"
-    v-loading="canPlay && !initialized">
+    v-loading="ready && !initialized">
     <el-button-group
       class="stream-controller"
       :style="`visibility: ${this.initialized ? 'visible' : 'hidden'}`">
@@ -66,8 +66,8 @@
             :ref="`videoViewRef${index}`"
             :audioTrack="peer.audioTrack"
             :videoTrack="peer.videoTrack"
-            :nickname="peer.nickname"
-            :avatar="peer.avatar"
+            :nickname="peer.userNickname"
+            :avatar="peer.userAvatar"
             :isMe="peer.id === user.id"
             :isOne="false"
             :peer="peer"
@@ -86,19 +86,19 @@
       </div>
       <div class="stream-video-one">
         <el-button
-          v-if="!canPlay"
+          v-if="!ready"
           type="primary"
           icon="el-icon-right"
           style="display: block; margin: 0 auto;"
-          @click="init">
+          @click="setStreamReady(true)">
           进入直播
         </el-button>
         <video-view
           v-if="mainSpeaker"
           :audioTrack="mainSpeaker.audioTrack"
           :videoTrack="mainSpeaker.videoTrack"
-          :nickname="mainSpeaker.nickname"
-          :avatar="mainSpeaker.avatar"
+          :nickname="mainSpeaker.userNickname"
+          :avatar="mainSpeaker.userAvatar"
           :isMe="mainSpeaker.id === user.id"
           :isOne="true"
           :peer="peer"
@@ -113,7 +113,7 @@
 // JavaScript code is modified from the mediasoup official demo project:
 // https://github.com/versatica/mediasoup-demo
 // under the MIT license.
-import { mapState } from 'vuex'
+import { mapState, mapActions } from 'vuex'
 import { Device } from 'mediasoup-client'
 import { Peer, WebSocketTransport } from 'protoo-client'
 
@@ -131,7 +131,6 @@ export default {
   data() {
     return {
       initialized: false,
-      canPlay: false,
       timer: null,
       audio: false,
       video: false,
@@ -169,16 +168,25 @@ export default {
       isTeacher: state => state.course.teacherId === state.user.id,
       user: state => state.user,
       courseId: state => state.course.id,
-      teacherId: state => state.course.teacherId
+      teacherId: state => state.course.teacherId,
+      members: state => state.members,
+      ready: state => state.ready
     })
   },
+  watch: {
+    ready(val) {
+      if (val && !this.initialized) {
+        this.init()
+      }
+    }
+  },
   methods: {
+    ...mapActions(['setStreamReady']),
     init() {
-      this.canPlay = true
       if (!this.user.id) { // 未拉取到用户数据
         setTimeout(() => {
           this.init()
-        }, 800)
+        }, 1000)
         return
       }
       this.serverUrl = `wss://${config.liveBaseUrl}${config.streamBaseUri}?roomId=${this.roomId}&peerId=${this.user.id}`
@@ -305,18 +313,21 @@ export default {
         sctpCapabilities: this.device.sctpCapabilities
       })
 
-      this.$message.success('连接成功')
-
       // 将自己放入房间
-      const me = {
-        id: this.user.id,
-        avatar: this.user.avatar,
-        nickname: this.user.nickname
-      }
+      const me = this.members.get(this.user.id)
+      me.id = `${this.user.id}`
       this.inactivePeers.push(me)
       this.me = me
 
-      this.inactivePeers.push(...peers)
+      this.inactivePeers.push(...peers.map(p => {
+        // 合并member和peer
+        const member = this.members.get(Number.parseInt(p.id))
+        // 服务端传回来的id为String类型，因此member.id也变为String类型，
+        // member.id == member.userId --> true,
+        // member.id === member.userId --> false.
+        member.id = p.id
+        return member
+      }))
 
       this.refreshVideoViewArrangements()
 
@@ -390,7 +401,7 @@ export default {
               }
               break
             case 'video':
-              if (!this.mainSpeaker.videoTrack) {
+              if (!this.mainSpeaker.videoTrack || operationPeer.userId === this.teacherId) {
                 index = 0
               }
               break
@@ -615,7 +626,7 @@ export default {
             index = this.activePeers.length
           }
         } else {
-          if (!this.mainSpeaker.videoTrack) {
+          if (!this.mainSpeaker.videoTrack || this.user.id === this.teacherId) {
             index = 0
           }
         }
@@ -656,7 +667,9 @@ export default {
     },
     handleNewPeer(notification) {
       const newPeer = notification.data
-      this.inactivePeers.push(newPeer)
+      const member = this.members.get(Number.parseInt(newPeer.id))
+      member.id = newPeer.id
+      this.inactivePeers.push(member)
       this.refreshVideoViewArrangements()
     },
     handlePeerClosed(notification) {
@@ -768,14 +781,7 @@ export default {
             sz = 1
           }
           this.pageSize = sz
-          if (this.childRef.offsetWidth < width) {
-            this.childRef.style.transform = `translateX(${(width - this.childRef.offsetWidth) / 2}px`
-          } else {
-            const match = this.childRef.style.transform.match(/translateX\((\d+\.?\d+)px\)/)
-            if (match && match[1] > 0) {
-              this.childRef.style.transform = `translateX(0px)`
-            }
-          }
+          this.refreshVideoViewArrangements()
         }, 500) // 延迟0.5秒减少不必要计算
       }
     },
@@ -784,6 +790,11 @@ export default {
       this.$nextTick(() => {
         if (this.childRef.offsetWidth < this.parentRef.offsetWidth) {
           this.childRef.style.transform = `translateX(${(this.parentRef.offsetWidth - this.childRef.offsetWidth) / 2}px`
+        } else {
+          const match = this.childRef.style.transform.match(/translateX\((\d+\.?\d+)px\)/)
+          if (match && match[1] > 0) {
+            this.childRef.style.transform = `translateX(0px)`
+          }
         }
       })
     }
@@ -793,6 +804,10 @@ export default {
       top: 60,
       behavior: 'smooth'
     })
+
+    if (this.ready) {
+      this.init()
+    }
 
     this.observer = new ResizeObserver(this.handleObserve())
     this.observer.observe(this.$refs.streamVideoAllRef)
@@ -831,6 +846,7 @@ export default {
     if (this.transports.receiveTransport) {
       this.transports.receiveTransport.close()
     }
+    this.setStreamReady(false)
   }
 }
 </script>

@@ -37,7 +37,7 @@
     </div>
     <stream v-if="live" :roomId="live" />
     <chat v-if="live" :roomId="live" />
-    <div style="text-align: center; padding: 48px 0 0;">
+    <div style="text-align: center; padding: 14px 0 23px;">
       <el-popconfirm
         v-if="isTeacher && live"
         title="确定关闭直播？直播关闭后其他人将无法进入直播间"
@@ -61,7 +61,7 @@
 <script>
 import Sign from './sign'
 
-import { mapState } from 'vuex'
+import { mapActions, mapState } from 'vuex'
 
 import {
   requestLiveCourse,
@@ -92,6 +92,7 @@ export default {
     isTeacher: state => state.course.teacherId === state.user.id
   }),
   methods: {
+    ...mapActions(['setMembers']),
     handleLiveCourse() {
       requestLiveCourse(this.courseId)
         .then(() => this.refreshLiveCourse())
@@ -150,6 +151,7 @@ export default {
     if (this.timer) {
       clearTimeout(this.timer)
     }
+    this.setMembers(new Map())
   }
 }
 </script>
