@@ -86,7 +86,7 @@
       </div>
       <div class="stream-video-one">
         <el-button
-          v-if="!ready"
+          v-if="!autoplay && !ready"
           type="primary"
           icon="el-icon-right"
           style="display: block; margin: 0 auto;"
@@ -165,6 +165,7 @@ export default {
       return this.activePeers.concat(this.inactivePeers)
     },
     ...mapGetters(['isTeacher']),
+    ...mapState(['autoplay']),
     ...mapState({
       user: state => state.user,
       courseId: state => state.course.id,
@@ -805,8 +806,8 @@ export default {
       behavior: 'smooth'
     })
 
-    if (this.ready) {
-      this.init()
+    if (this.autoplay) {
+      this.setStreamReady(true)
     }
 
     this.observer = new ResizeObserver(this.handleObserve())

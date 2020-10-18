@@ -5,7 +5,19 @@
 </template>
 
 <script>
+import { mapActions } from 'vuex'
+
 export default {
+  methods: {
+    ...mapActions(['setAutoplay']),
+    handleClick() {
+      this.setAutoplay()
+      document.removeEventListener('click', this.handleClick)
+    }
+  },
+  mounted() {
+    document.addEventListener('click', this.handleClick)
+  }
 }
 </script>
 

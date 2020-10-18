@@ -208,6 +208,7 @@ export default {
   },
   computed: {
     ...mapGetters(['isTeacher']),
+    ...mapState(['autoplay']),
     ...mapState({
       user: state => state.user,
       ready: state => state.ready,
@@ -549,11 +550,6 @@ export default {
           oldNickname: member.userNickname
         }))
         this.setChatReady(true)
-      })
-      .finally(() => {
-        if (this.ready) {
-          this.init()
-        }
       })
   },
   updated() {
