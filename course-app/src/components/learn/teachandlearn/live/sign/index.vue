@@ -177,7 +177,7 @@ export default {
       fetch(`${config.apiBaseUrl}/course/sign/${this.currentSignId}/download?courseId=${this.params.courseId}`, {
         method: 'GET',
         headers: {
-          Authorization: `Bearer ${sessionStorage.getItem('token')}`
+          Authorization: `Bearer ${sessionStorage.getItem(config.accessTokenKey)}`
         }
       })
       .then(response => response.blob())

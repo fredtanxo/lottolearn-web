@@ -72,6 +72,7 @@ import ScreenCapture from '@uppy/screen-capture'
 import Tus from '@uppy/tus';
 import CnLocale from '@uppy/locales/lib/zh_CN'
 
+import config from '@/config'
 import {
   findChapterFiles,
   findResourceItems,
@@ -135,7 +136,7 @@ export default {
       fetch(row.accessUrl, {
         method: 'GET',
         headers: {
-          Authorization: `Bearer ${sessionStorage.getItem('token')}`
+          Authorization: `Bearer ${sessionStorage.getItem(config.accessTokenKey)}`
         }
       })
       .then(response => {
