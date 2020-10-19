@@ -1,8 +1,9 @@
 <template>
   <div
-    class="stream-container"
+    :class="{'stream-container': true, 'no-autoplay': !autoplay}"
     ref="streamContainer"
-    v-loading="ready && !initialized">
+    v-loading="autoplay && !initialized"
+    element-loading-background="rgba(0, 0, 0, 0)">
     <el-button-group
       class="stream-controller"
       :style="`visibility: ${this.initialized ? 'visible' : 'hidden'}`">
@@ -85,14 +86,11 @@
         </el-button>
       </div>
       <div class="stream-video-one">
-        <el-button
-          v-if="!autoplay && !ready"
-          type="primary"
-          icon="el-icon-right"
-          style="display: block; margin: 0 auto;"
-          @click="setStreamReady(true)">
-          进入直播
-        </el-button>
+        <h2
+          v-if="!autoplay"
+          class="no-autoplay-tip">
+          <i class="el-icon-thumb"></i>
+        </h2>
         <video-view
           v-if="mainSpeaker"
           :audioTrack="mainSpeaker.audioTrack"
@@ -165,16 +163,18 @@ export default {
       return this.activePeers.concat(this.inactivePeers)
     },
     ...mapGetters(['isTeacher']),
-    ...mapState(['autoplay']),
+    ...mapState(['autoplay', 'ready', 'streamReady', 'user', 'members']),
     ...mapState({
-      user: state => state.user,
       courseId: state => state.course.id,
-      teacherId: state => state.course.teacherId,
-      members: state => state.members,
-      ready: state => state.ready
+      teacherId: state => state.course.teacherId
     })
   },
   watch: {
+    autoplay(val) {
+      if (val) {
+        this.setStreamReady(true)
+      }
+    },
     ready(val) {
       if (val && !this.initialized) {
         this.init()
@@ -901,5 +901,16 @@ export default {
 .video-view-wrapper {
   position: absolute;
   transition: transform 0.45s ease-out;
+}
+
+.no-autoplay {
+  cursor: pointer;
+}
+.no-autoplay-tip {
+  margin-top: -2em;
+  color: #fafafa;
+  text-align: center;
+  width: 100%;
+  cursor: pointer;
 }
 </style>
