@@ -49,12 +49,20 @@
         @click="handleSelectMainSpeaker">
       </el-button>
       <el-button
-        v-if="!selected"
+        v-if="pipSupport && !selected && !pip"
         type="success"
         circle
         icon="el-icon-top-right"
         :size="this.isOne ? 'medium' : 'mini'"
         @click="handleVideoPictureInPicture">
+      </el-button>
+      <el-button
+        v-if="pipSupport && !selected && pip"
+        type="success"
+        circle
+        icon="el-icon-bottom-left"
+        :size="this.isOne ? 'medium' : 'mini'"
+        @click="handleExitPictureInPicture">
       </el-button>
     </div>
     <div
@@ -68,7 +76,20 @@
         </i>
       </span>
     </div>
-    <div :class="{'video-nickname': !isOne, 'video-nickname-one': isOne}">
+    <div
+      :class="{'video-nickname': !isOne, 'video-nickname-one': isOne}">
+      <span
+        v-if="!isOne"
+        style="position: absolute; left: 0;">
+        <i
+          v-if="audioTrack"
+          class="el-icon-microphone status-icon">
+        </i>
+        <i
+          v-if="videoTrack"
+          class="el-icon-video-camera status-icon">
+        </i>
+      </span>
       {{ nickname ? nickname : '' }}
     </div>
   </div>
@@ -90,7 +111,9 @@ export default {
     return {
       audioActive: false,
       videoActive: false,
-      selected: false
+      selected: false,
+      pipSupport: true,
+      pip: false
     }
   },
   watch: {
@@ -150,6 +173,15 @@ export default {
     handleVideoPictureInPicture() {
       this.$refs.svideo.requestPictureInPicture()
     },
+    handleExitPictureInPicture() {
+      document.exitPictureInPicture()
+    },
+    handleEnterPipEvent() {
+      this.pip = true
+    },
+    handleExitPipEvent() {
+      this.pip = false
+    },
     deselectMainSpeakerCallback() {
       if (!this.$refs.svideo) { // 不在同一页
         return
@@ -180,6 +212,18 @@ export default {
     }
     if (this.videoTrack) {
       this.handleNewTrack(this.videoTrack, 'video')
+    }
+    if (this.$refs.svideo.requestPictureInPicture) {
+      this.$refs.svideo.addEventListener('enterpictureinpicture', this.handleEnterPipEvent)
+      this.$refs.svideo.addEventListener('leavepictureinpicture', this.handleExitPipEvent)
+    } else {
+      this.pipSupport = false
+    }
+  },
+  beforeDestroy() {
+    if (this.$refs.svideo.requestPictureInPicture) {
+      this.$refs.svideo.removeEventListener('enterpictureinpicture', this.handleEnterPipEvent)
+      this.$refs.svideo.removeEventListener('leavepictureinpicture', this.handleExitPipEvent)
     }
   }
 }
@@ -216,15 +260,15 @@ export default {
 }
 
 .stream-video-control {
-    position: absolute;
-    width: 160px;
-    height: 100px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    opacity: 0;
-    background-color: rgba(0,0,0,0.2);
-    transition: all 0.25s ease-out;
+  position: absolute;
+  width: 160px;
+  height: 100px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  opacity: 0;
+  background-color: rgba(0,0,0,0.2);
+  transition: all 0.25s ease-out;
 }
 .stream-video-control-show {
   opacity: 1 !important;
@@ -260,7 +304,7 @@ export default {
 }
 .video-nickname-one {
   position: absolute;
-  padding: 0 1em;
+  padding: 0 0.8em;
   top: calc(100vh - 290px - 1.8em);
   text-align: center;
   line-height: 1.8em;
@@ -279,5 +323,9 @@ export default {
   height: 100%;
   font-size: 14px;
   background-color: rgba(0,0,0,0.6);
+}
+
+.status-icon {
+  margin-left: 0.3em;
 }
 </style>

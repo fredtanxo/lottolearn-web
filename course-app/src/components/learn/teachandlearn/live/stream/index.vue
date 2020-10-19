@@ -69,7 +69,7 @@
             :videoTrack="peer.videoTrack"
             :nickname="peer.userNickname"
             :avatar="peer.userAvatar"
-            :isMe="peer.id === user.id"
+            :isMe="peer.userId === user.id"
             :isOne="false"
             :peer="peer"
             :selectMainSpeaker="selectMainSpeaker" />
@@ -97,7 +97,7 @@
           :videoTrack="mainSpeaker.videoTrack"
           :nickname="mainSpeaker.userNickname"
           :avatar="mainSpeaker.userAvatar"
-          :isMe="mainSpeaker.id === user.id"
+          :isMe="mainSpeaker.userId === user.id"
           :isOne="true"
           :peer="peer"
           :selectMainSpeaker="selectMainSpeaker" />
@@ -677,6 +677,12 @@ export default {
       const { peerId } = notification.data
       this.activePeers = this.activePeers.filter(peer => peer.id !== peerId)
       this.inactivePeers = this.inactivePeers.filter(peer => peer.id !== peerId)
+
+      const member = this.members.get(Number.parseInt(peerId))
+      member.videoTrack = null
+      member.audioTrack = null
+      this.peerConsumers.delete(peerId)
+
       this.refreshVideoViewArrangements()
     },
     handleConsumerClosed(notification) {
