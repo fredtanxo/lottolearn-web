@@ -37,24 +37,7 @@
     </div>
     <stream v-if="live" :roomId="live" />
     <chat v-if="live" :roomId="live" />
-    <div style="text-align: center; padding: 14px 0 23px;">
-      <el-popconfirm
-        v-if="isTeacher && live"
-        title="确定关闭直播？直播关闭后其他人将无法进入直播间"
-        confirmButtonText="关闭"
-        iconColor="red"
-        @onConfirm="handleLiveCourseEnd">
-        <el-button
-          slot="reference"
-          type="danger"
-          icon="el-icon-switch-button"
-          size="medium"
-          plain
-          :disabled="down">
-          {{ down ? '直播已关闭' : '关闭直播' }}
-        </el-button>
-      </el-popconfirm>
-    </div>
+    <div style="text-align: center; padding: 14px 0 23px;"></div>
   </div>
 </template>
 
@@ -63,11 +46,7 @@ import Sign from './sign'
 
 import { mapActions, mapGetters } from 'vuex'
 
-import {
-  requestLiveCourse,
-  queryLiveCourse,
-  requestLiveCourseEnd
-} from '@/api/learn'
+import { requestLiveCourse, queryLiveCourse } from '@/api/learn'
 
 import Chat from './chat'
 import Stream from './stream'
@@ -84,7 +63,6 @@ export default {
       courseId: this.$route.params.courseId,
       loading: true,
       live: false,
-      down: false,
       timer: null
     }
   },
@@ -95,13 +73,6 @@ export default {
       requestLiveCourse(this.courseId)
         .then(() => this.refreshLiveCourse())
         .catch(() => this.$message.error('开始直播失败'))
-    },
-    handleLiveCourseEnd() {
-      requestLiveCourseEnd(this.courseId)
-        .then(() => {
-          this.down = true
-        })
-        .catch(() => this.$message.error('下课失败'))
     },
     handleRefresh() {
       this.loading = true
@@ -127,11 +98,11 @@ export default {
         }
       }
     },
-    // 自动刷新，时间间隔线性增加
+    // 自动刷新，时间间隔线性增加，上限30秒
     autoRefreshHandler(timeout) {
       this.timer = setTimeout(() => {
         this.refreshLiveCourse()
-        this.autoRefreshHandler(timeout + 1)
+        this.autoRefreshHandler(timeout < 30 ? timeout + 1 : timeout)
       }, timeout * 1000)
     },
     setSignDialog() {

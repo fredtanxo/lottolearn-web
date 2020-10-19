@@ -152,7 +152,7 @@
             :key="index"
             v-bind="history" />
         </div>
-        <div class="chat-input-wrapper">
+        <div ref="chatInput" class="chat-input-wrapper">
           <el-input
             type="textarea"
             autosize
@@ -164,6 +164,24 @@
         </div>
       </el-card>
     </div>
+    <div style="text-align: center; margin-top: 10px;">
+      <el-popconfirm
+        v-if="isTeacher && initialized"
+        title="确定结束直播？"
+        confirmButtonText="结束"
+        iconColor="red"
+        @onConfirm="handleLiveCourseEnd">
+        <el-button
+          slot="reference"
+          type="danger"
+          icon="el-icon-switch-button"
+          size="medium"
+          plain
+          :loading="ending">
+          结束直播
+        </el-button>
+      </el-popconfirm>
+    </div>
   </div>
 </template>
 
@@ -173,7 +191,11 @@ import { Client } from '@stomp/stompjs'
 
 import config from '@/config'
 import { findCourseMembers } from '@/api/course'
-import { requestLiveCourseSign, handleLiveCourseSign } from '@/api/learn'
+import {
+  requestLiveCourseSign,
+  handleLiveCourseSign,
+  requestLiveCourseEnd
+} from '@/api/learn'
 
 import ChatItem from './item'
 
@@ -203,16 +225,15 @@ export default {
       onlineMembers: [],
       offlineMembers: [],
       currentNickname: '',
-      editNickname: false
+      editNickname: false,
+      ending: false
     }
   },
   computed: {
     ...mapGetters(['isTeacher']),
-    ...mapState(['autoplay']),
+    ...mapState(['autoplay', 'ready', 'user', 'members']),
     ...mapState({
-      user: state => state.user,
-      ready: state => state.ready,
-      members: state => state.members
+      teacherId: state => state.course.teacherId
     })
   },
   watch: {
@@ -309,6 +330,9 @@ export default {
         case 'ELECT':
           this.handleElectMessage(msg)
           break
+        case 'END':
+          this.handleEndMessage(msg)
+          break
       }
     },
     // 处理房间成员列表消息
@@ -381,13 +405,25 @@ export default {
         this.$notify.info({
           title: '提问',
           message: `${member2.userNickname} 向你发起提问`,
-          duration: 0
+          duration: 60000
         })
         message.content = `[${member2.userNickname} 向你发起提问]`
       } else {
         message.content = `[${member2.userNickname} 向 ${member1.userNickname} 发起提问]`
       }
       this.handleChatMessage(message)
+    },
+    // 处理结束直播消息
+    handleEndMessage(message) {
+      if (message.userId === this.teacherId) {
+        this.$notify({
+          title: '直播结束',
+          message: this.isTeacher ? '你结束了直播' : '教师结束了直播',
+          type: 'success',
+          duration: 60000
+        })
+        this.$router.push(`/learn/${this.courseId}/teach-and-learn/chapter`)
+      }
     },
     // 发送消息
     sendMessage(type, content) {
@@ -465,7 +501,7 @@ export default {
         .finally(() => this.$notify.error({
           title: '签到',
           message: `错过 ${teacherName} 发起的 ${content.timeout} 秒签到`,
-          duration: 0
+          duration: 120000
         }))
       }, content.timeout * 1000)
 
@@ -532,6 +568,14 @@ export default {
       this.sendMessage('MEMBER_NICKNAME_CHANGED', this.currentNickname)
       this.editNickname = false
       this.$message.success(`已更名为：${this.currentNickname}`)
+    },
+    handleLiveCourseEnd() {
+      this.ending = true
+      requestLiveCourseEnd(this.courseId)
+        .then(() => {
+          this.sendMessage('END')
+        })
+        .catch(() => this.$message.error('无法结束直播'))
     }
   },
   mounted() {
@@ -540,7 +584,7 @@ export default {
     // 聊天页面滚动
     this.chatRef.addEventListener('scroll', this.handleScroll)
 
-    // 先获取成员列表再激活client
+    // 先获取成员列表
     findCourseMembers(this.courseId)
       .then(response => {
         const data = response.data
