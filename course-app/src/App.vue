@@ -11,6 +11,7 @@ export default {
   methods: {
     ...mapActions(['setAutoplay']),
     handleClick() {
+      new Audio(`${process.env.BASE_URL}blank.mp3`).play()
       this.setAutoplay()
       document.removeEventListener('click', this.handleClick)
     }
