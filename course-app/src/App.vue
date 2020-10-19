@@ -27,7 +27,15 @@ body {
   font-family: "Helvetica Neue",Helvetica,"PingFang SC","Hiragino Sans GB","Microsoft YaHei","微软雅黑",Arial,sans-serif;
   margin: 0;
 }
-* {
+span:focus {
   outline: none;
+}
+.el-tabs__item:focus.is-active.is-focus:not(:active) {
+  -webkit-box-shadow: none !important;
+  box-shadow: none !important;
+}
+.el-radio-button:focus {
+  -webkit-box-shadow: none !important;
+  box-shadow: none !important;
 }
 </style>
