@@ -277,8 +277,6 @@ export default {
         )
         this.connecting = false
         this.chatSubscription = subscription
-
-        this.sendMessage('NEW_MEMBER', null)
       }
 
       client.onWebSocketClose = () => this.connecting = true
