@@ -252,11 +252,12 @@ export default {
         }, 800)
         return
       }
+      this.currentNickname = this.getCachedNicknameOrDefault()
       const token = sessionStorage.getItem(config.accessTokenKey)
       const client = new Client({
         brokerURL: `wss://${config.liveBaseUrl}${config.chatBaseUri}/classroom`,
         connectHeaders: {
-          user: this.user.nickname,
+          user: this.currentNickname,
           authorization: token
         }
       })
@@ -265,13 +266,14 @@ export default {
       client.onConnect = () => {
         // 将自己放入房间
         const me = this.members.get(this.user.id)
+        me.userNickname = this.currentNickname
         this.onlineMembers.unshift(me)
         this.me = me
         // 订阅房间
         const subscription = client.subscribe(
           `/out/${this.roomId}`,
           this.handleReceiveMessage,
-          { id: this.roomId, nickname: this.user.nickname }
+          { id: this.roomId, nickname: this.currentNickname }
         )
         this.connecting = false
         this.chatSubscription = subscription
@@ -346,6 +348,9 @@ export default {
         return
       }
       const member = this.members.get(message.userId)
+      if (member.userNickname !== message.content) {
+        member.userNickname = message.content
+      }
       this.offlineMembers = this.offlineMembers.filter(m => m !== member)
       this.onlineMembers.splice(1, 0, member)
     },
@@ -496,7 +501,7 @@ export default {
         handleLiveCourseSign({
           userId: this.user.id,
           signId: content.signId,
-          userNickname: this.user.nickname
+          userNickname: this.currentNickname
         })
         .finally(() => this.$notify.error({
           title: '签到',
@@ -568,6 +573,13 @@ export default {
       this.sendMessage('MEMBER_NICKNAME_CHANGED', this.currentNickname)
       this.editNickname = false
       this.$message.success(`已更名为：${this.currentNickname}`)
+      this.cacheNickname()
+    },
+    getCachedNicknameOrDefault() {
+      return localStorage.getItem(`live_nickname:${this.courseId}`) || this.user.nickname
+    },
+    cacheNickname() {
+      return localStorage.setItem(`live_nickname:${this.courseId}`, this.currentNickname)
     },
     handleLiveCourseEnd() {
       this.ending = true
