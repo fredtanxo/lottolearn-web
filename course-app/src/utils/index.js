@@ -22,3 +22,7 @@ export const convertDate = date => {
   }
   return `${year}-${month}-${day} ${hour}:${minute}:${second}`
 }
+
+export const notifySound = () => {
+  new Audio(`${process.env.BASE_URL}notification-celesta.mp3`).play()
+}

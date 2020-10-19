@@ -196,6 +196,7 @@ import {
   handleLiveCourseSign,
   requestLiveCourseEnd
 } from '@/api/learn'
+import { notifySound } from '@/utils'
 
 import ChatItem from './item'
 
@@ -405,7 +406,8 @@ export default {
       const member1 = this.members.get(content.userId)
       const member2 = this.members.get(message.userId)
       if (member1.userId === this.user.id) {
-        this.$notify.info({
+        notifySound()
+        this.$notify.warning({
           title: '提问',
           message: `${member2.userNickname} 向你发起提问`,
           duration: 60000
@@ -419,10 +421,9 @@ export default {
     // 处理结束直播消息
     handleEndMessage(message) {
       if (message.userId === this.teacherId) {
-        this.$notify({
+        this.$notify.success({
           title: '直播结束',
           message: this.isTeacher ? '你结束了直播' : '教师结束了直播',
-          type: 'success',
           duration: 60000
         })
         this.$router.push(`/learn/${this.courseId}/teach-and-learn/chapter`)
@@ -501,14 +502,18 @@ export default {
           signId: content.signId,
           userNickname: this.currentNickname
         })
-        .finally(() => this.$notify.error({
-          title: '签到',
-          message: `错过 ${teacherName} 发起的 ${content.timeout} 秒签到`,
-          duration: 120000
-        }))
+        .finally(() => {
+          notifySound()
+          this.$notify.error({
+            title: '签到',
+            message: `错过 ${teacherName} 发起的 ${content.timeout} 秒签到`,
+            duration: 120000
+          })
+        })
       }, content.timeout * 1000)
 
-      const notify = this.$notify.info({
+      notifySound()
+      const notify = this.$notify.warning({
         title: '签到',
         message: `${teacherName} 发起的 ${content.timeout} 秒签到`,
         duration: content.timeout * 1000,
