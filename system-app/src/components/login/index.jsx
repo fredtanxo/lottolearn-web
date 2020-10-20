@@ -58,6 +58,11 @@ export default () => {
     <LoginLayout>
       <div style={{ width: '365px' }}>
         <div className="logo-wrapper">
+          <img
+            src={`${process.env.PUBLIC_URL}/logo-web.png`}
+            width="150"
+            alt="LotToLearn System Management"
+          />
           <h2>LotToLearn</h2>
         </div>
         <div className="login-form-wrapper">

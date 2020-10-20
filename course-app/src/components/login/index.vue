@@ -1,6 +1,10 @@
 <template>
   <div class="login-container">
     <div class="logo-wrapper">
+      <img
+        :src="`${publicPath}logo-web.png`"
+        width="150"
+        alt="LotToLearn" />
       <h2>LotToLearn</h2>
     </div>
     <div class="login-form-wrapper">
@@ -66,6 +70,7 @@ import config from '../../config'
 export default {
   data() {
     return {
+      publicPath: process.env.BASE_URL,
       loginTrying: false,
       loginLoading: false,
       login: {
