@@ -38,4 +38,10 @@ span:focus {
   -webkit-box-shadow: none !important;
   box-shadow: none !important;
 }
+button, input, select, textarea {
+    font-family: inherit;
+    font-size: inherit;
+    line-height: inherit;
+    color: inherit;
+}
 </style>

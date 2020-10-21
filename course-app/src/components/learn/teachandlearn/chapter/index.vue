@@ -1,5 +1,5 @@
 <template>
-  <keep-alive include="select">
+  <keep-alive include="choose">
     <router-view></router-view>
   </keep-alive>
 </template>

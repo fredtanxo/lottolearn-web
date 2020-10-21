@@ -100,7 +100,7 @@ import { mapActions, mapGetters } from 'vuex'
 import { findCourseChapters, addChapter } from '@/api/learn'
 
 export default {
-  name: 'select',
+  name: 'choose',
   data() {
     return {
       courseId: this.$route.params.courseId,

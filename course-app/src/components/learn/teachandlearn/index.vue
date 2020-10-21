@@ -8,7 +8,10 @@
           is-dot
           :hidden="true"
           slot="label">
-          <span>章节</span>
+          <span>
+            <i class="el-icon-collection"></i>
+            章节
+          </span>
         </el-badge>
       </el-tab-pane>
       <el-tab-pane name="live">
@@ -16,7 +19,10 @@
           is-dot
           :hidden="viewed ? true : !live"
           slot="label">
-          <span>直播</span>
+          <span>
+            <i class="el-icon-video-camera"></i>
+            直播
+          </span>
         </el-badge>
       </el-tab-pane>
     </el-tabs>

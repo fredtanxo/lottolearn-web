@@ -35,3 +35,19 @@ export const requestLiveCourseSign = (courseId, timeout, params) => {
 export const handleLiveCourseSign = params => {
   return Network.post('/course/live/student/sign/', params)
 }
+
+export const findChapterDiscussions = (chapterId, params) => {
+  return Network.get(`/chapter/discussion/${chapterId}`, params)
+}
+
+export const findChapterDiscussionReplies = (discussionId, params) => {
+  return Network.get(`/chapter/discussion/replies/${discussionId}`, params)
+}
+
+export const postChapterDiscussion = (courseId, chapterId, params) => {
+  return Network.post(`/chapter/discussion/${chapterId}?courseId=${courseId}`, params)
+}
+
+export const likeChapterDiscussion = (discussionId, courseId) => {
+  return Network.put(`/chapter/discussion/like/${discussionId}?courseId=${courseId}`)
+}

@@ -3,7 +3,7 @@ import LearnLayout from '@/components/layout/learn'
 import Announcement from '@/components/learn/announcement'
 import TeachAndLearn from '@/components/learn/teachandlearn'
 import Chapter from '@/components/learn/teachandlearn/chapter'
-import Select from '@/components/learn/teachandlearn/chapter/select'
+import Choose from '@/components/learn/teachandlearn/chapter/choose'
 import Learning from '@/components/learn/teachandlearn/chapter/learning'
 import Live from '@/components/learn/teachandlearn/live'
 import Library from '@/components/learn/library'
@@ -30,12 +30,12 @@ export default {
           path: 'chapter',
           component: Chapter,
           name: 'chapter',
-          redirect: 'chapter/select',
+          redirect: 'chapter/choose',
           children: [
             {
-              path: 'select',
-              component: Select,
-              name: 'chapter-select'
+              path: 'choose',
+              component: Choose,
+              name: 'chapter-choose'
             },
             {
               path: 'learning/:chapterId',

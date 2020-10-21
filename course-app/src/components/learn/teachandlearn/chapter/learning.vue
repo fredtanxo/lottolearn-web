@@ -1,4 +1,5 @@
 <template>
+<div>
   <div
     class="chapter-container"
     v-loading="mediaLoading">
@@ -15,16 +16,17 @@
     </div>
     <div
       v-else
-      style="text-align: center; padding: 30vh 0 0;">
+      style="text-align: center; padding: 10vh 0 0;">
       <div>章节没有视频资源</div>
     </div>
     <div class="chapter-resource">
       <el-button
         v-if="isTeacher"
         type="primary"
+        icon="el-icon-aim"
         @click="dialogTableVisible = true"
         style="margin-right: 10px;">
-        选择章节视频
+        选择视频
       </el-button>
       <el-dialog 
         width="80vw"
@@ -37,7 +39,9 @@
           :callback="afterLinkSuccess">
         </files-view>
       </el-dialog>
-      <el-button @click="handleViewChapterFiles">
+      <el-button
+        icon="el-icon-folder-opened"
+        @click="handleViewChapterFiles">
         章节文件
       </el-button>
       <el-drawer
@@ -54,12 +58,15 @@
       </el-drawer>
     </div>
   </div>
+  <discussion></discussion>
+</div>
 </template>
 
 <script>
 /* eslint-disable */
 import shaka from 'shaka-player/dist/shaka-player.ui'
 
+import Discussion from './discussion'
 import FilesView from '@/components/common/files'
 
 import { findChapterMedia } from '@/api/resource'
@@ -67,6 +74,7 @@ import { mapActions, mapGetters } from 'vuex'
 
 export default {
   components: {
+    Discussion,
     FilesView
   },
   data() {
@@ -163,7 +171,7 @@ export default {
 @import '~shaka-player/dist/controls.css';
 
 .chapter-resource {
-  margin: 20px 0 0;
+  margin: 20px 0 12vh;
   display: flex;
   justify-content: center;
 }
