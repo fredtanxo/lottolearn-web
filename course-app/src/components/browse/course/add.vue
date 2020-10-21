@@ -202,7 +202,14 @@
 </template>
 
 <script>
-import { addCourse, joinCourse, findAllTerms, addTerm } from '@/api/course'
+import {
+  addCourse,
+  joinCourse,
+  findAddCourseResult,
+  findJoinCourseResult,
+  findAllTerms,
+  addTerm
+} from '@/api/course'
 import { convertDate } from '@/utils'
 
 export default {
@@ -212,6 +219,7 @@ export default {
   data() {
     return {
       dialog: false,
+      timer: null,
       loadingAdd: false,
       loadingTerm: false,
       loadingJoin: false,
@@ -275,6 +283,7 @@ export default {
     }
   },
   methods: {
+    // 刷新学期
     refreshTerm() {
       findAllTerms()
         .then(response => {
@@ -283,6 +292,7 @@ export default {
         })
         .catch(() => this.$message.error('无法获取学期信息'))
     },
+    // 添加学期
     handleAddTerm() {
       this.$refs.formTerm.validate(valid => {
         if (valid) {
@@ -311,6 +321,7 @@ export default {
         }
       })
     },
+    // 下一步
     handleNextStep(mode) {
       this.step++
       this.mode = mode
@@ -318,13 +329,31 @@ export default {
         this.refreshTerm()
       }
     },
+    // 添加课程
     handleAddCourse() {
-      this.loadingAdd = true
       this.$refs.formAdd.validate(valid => {
         if (valid) {
+          this.loadingAdd = true
           addCourse(this.formAdd)
             .then(response => {
               const data = response.data
+              this.handleQueryAddCourse(data, 0)
+            })
+            .catch(() => {
+              this.$message.error('添加失败')
+              this.loadingAdd = false
+            })
+        }
+      })
+    },
+    // 查询添加课程状态
+    handleQueryAddCourse(id, timeout) {
+      this.timer = setTimeout(() => {
+        findAddCourseResult(id)
+          .then(response => {
+            const data = response.data
+            if (data) {
+              clearTimeout(this.timer)
               this.result = {
                 success: data.code === 200,
                 message: data.message,
@@ -333,21 +362,39 @@ export default {
               }
               this.step++
               this.callback()
-            })
-            .catch(() => this.$message.error('添加失败'))
-            .finally(() => this.loadingAdd = false)
-        } else {
-          this.loadingAdd = false
-        }
-      })
+              this.loadingAdd = false
+            } else {
+              this.handleQueryAddCourse(id, timeout >= 3 ? 3 : timeout + 1)
+            }
+          })
+          .catch(err => console.error(err))
+      }, timeout * 1000)
     },
+    // 邀请码加入课程
     handleJoinCourse() {
-      this.loadingJoin = true
       this.$refs.formJoin.validate(valid => {
         if (valid) {
+          this.loadingJoin = true
           joinCourse(this.formJoin.code)
             .then(response => {
               const data = response.data
+              this.handleQueryJoinCourse(data, 0)
+            })
+            .catch(() => {
+              this.$message.error('加入失败')
+              this.loadingJoin = false
+            })
+        }
+      })
+    },
+    // 查询加入课程状态
+    handleQueryJoinCourse(id, timeout) {
+      this.timer = setTimeout(() => {
+        findJoinCourseResult(id)
+          .then(response => {
+            const data = response.data
+            if (data) {
+              clearTimeout(this.timer)
               this.result = {
                 success: data.code === 200,
                 message: data.message,
@@ -355,15 +402,13 @@ export default {
               }
               this.step++
               this.callback()
-            })
-            .catch(err => {
-              console.error(err)
-              this.$message.error('加入失败')})
-            .finally(() => this.loadingJoin = false)
-        } else {
-          this.loadingJoin = false
-        }
-      })
+              this.loadingJoin = false
+            } else {
+              this.handleQueryJoinCourse(id, timeout >= 3 ? 3 : timeout + 1)
+            }
+          })
+          .catch(() => this.$message.error('请重试'))
+      }, timeout * 1000)
     }
   }
 }

@@ -20,12 +20,20 @@ export const addCourse = params => {
   return Network.post('/course/new', params)
 }
 
+export const findAddCourseResult = id => {
+  return Network.get(`/course/new/status/${id}`)
+}
+
 export const updateCourse = (courseId, params) => {
   return Network.put(`/course/id/${courseId}`, params)
 }
 
 export const joinCourse = code => {
   return Network.put(`/course/invitation/${code}`)
+}
+
+export const findJoinCourseResult = id => {
+  return Network.get(`/course/invitation/status/${id}`)
 }
 
 export const findAllTerms = () => {
