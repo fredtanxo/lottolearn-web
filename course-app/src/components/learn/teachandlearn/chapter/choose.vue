@@ -140,7 +140,7 @@ export default {
           this.chapters = data.payload.data
           this.total = data.payload.total
         })
-        .catch(() => this.$message.error('无法加载章节信息'))
+        .catch(() => this.$message.error('无法获取章节信息'))
         .finally(() => this.loading = false)
     },
     handleLearnChapter(chapterId, chapterName) {

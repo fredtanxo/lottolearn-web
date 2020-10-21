@@ -6,9 +6,18 @@
           v-model="query.teacher"
           size="medium"
           @change="queryCourseList">
-          <el-radio-button label="">所有</el-radio-button>
-          <el-radio-button label="false">我学的</el-radio-button>
-          <el-radio-button label="true">我教的</el-radio-button>
+          <el-radio-button label="">
+            <i class="el-icon-receiving"></i>
+            所有
+          </el-radio-button>
+          <el-radio-button label="false">
+            <i class="el-icon-notebook-2"></i>
+            我学的
+          </el-radio-button>
+          <el-radio-button label="true">
+            <i class="el-icon-mic"></i>
+            我教的
+          </el-radio-button>
         </el-radio-group>
       </el-col>
       <el-col
@@ -18,9 +27,18 @@
           v-model="query.status"
           size="medium"
           @change="queryCourseList">
-          <el-radio-button label="0">未开始</el-radio-button>
-          <el-radio-button label="1">正在进行</el-radio-button>
-          <el-radio-button label="2">已结束</el-radio-button>
+          <el-radio-button label="0">
+            <i class="el-icon-more-outline"></i>
+            未开始
+          </el-radio-button>
+          <el-radio-button label="1">
+            <i class="el-icon-date"></i>
+            进行中
+          </el-radio-button>
+          <el-radio-button label="2">
+            <i class="el-icon-finished"></i>
+            已结束
+          </el-radio-button>
         </el-radio-group>
       </el-col>
     </el-row>

@@ -21,10 +21,14 @@
             <span class="user-nickname">{{ nickname }}</span>
           </span>
           <el-dropdown-menu slot="dropdown">
-            <el-dropdown-item command="editProfile">个人资料</el-dropdown-item>
+            <el-dropdown-item command="editProfile">
+              <i class="el-icon-user"></i>
+              个人资料
+            </el-dropdown-item>
             <el-dropdown-item
               command="requestLogout"
               :disabled="loggingOut">
+              <i class="el-icon-switch-button"></i>
               退出登陆
             </el-dropdown-item>
           </el-dropdown-menu>

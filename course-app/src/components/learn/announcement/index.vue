@@ -129,7 +129,7 @@ export default {
           this.announcements = this.announcements.concat(data.payload.data)
           this.more = this.announcements.length !== this.total
         })
-        .catch(() => this.$message.error('没有加入该课程'))
+        .catch(() => this.$message.error('无法获取课程公告'))
         .finally(() => this.loading = false)
     },
     handleAddAnnouncement() {

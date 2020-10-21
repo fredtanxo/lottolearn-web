@@ -303,7 +303,7 @@ export default {
           this.totalMembers = data.payload.total
           this.members = this.members.concat(data.payload.data)
         })
-        .catch(() => this.$message.error('无法获取课程成员'))
+        .catch(() => this.$message.error('无法获取课程成员列表'))
         .finally(() => this.membersLoading = false)
     },
     handleMoreMembers() {

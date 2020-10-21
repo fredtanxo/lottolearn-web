@@ -78,13 +78,17 @@ export default {
       this.loading = true
       this.refreshLiveCourse()
     },
-    refreshLiveCourse() {
+    refreshLiveCourse(flag) {
       queryLiveCourse(this.courseId)
         .then(response => {
           const data = response.data
           this.live = data.payload
         })
-        .catch(() => this.$message.error('无法查询课程直播状态'))
+        .catch(() => {
+          if (!flag) {
+            this.$message.error('无法获取课程直播状态')
+          }
+        })
         .finally(() => this.loading = false)
     },
     autoRefresh() {
@@ -101,7 +105,7 @@ export default {
     // 自动刷新，时间间隔线性增加，上限30秒
     autoRefreshHandler(timeout) {
       this.timer = setTimeout(() => {
-        this.refreshLiveCourse()
+        this.refreshLiveCourse(true)
         this.autoRefreshHandler(timeout < 30 ? timeout + 1 : timeout)
       }, timeout * 1000)
     },
