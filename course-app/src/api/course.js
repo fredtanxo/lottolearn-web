@@ -59,3 +59,15 @@ export const quitCourse = courseId => {
 export const closeCourse = courseId => {
   return Network.delete(`/course/${courseId}`)
 }
+
+export const findCourseRatingsByCourseId = (courseId, params) => {
+  return Network.get(`/course/rating/${courseId}`, params)
+}
+
+export const findUserCourseRating = courseId => {
+  return Network.get(`/course/rating/${courseId}/user`)
+}
+
+export const updateCourseRating = (courseId, params) => {
+  return Network.put(`/course/rating/${courseId}`, params)
+}
