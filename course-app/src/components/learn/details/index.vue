@@ -92,6 +92,25 @@
         </tr>
         <tr>
           <td>
+            <i class="el-icon-coordinate"></i>
+            <span class="detail-label">身份</span>
+          </td>
+          <td>
+            <span>{{ userCourse.userNickname }}</span>
+            <span
+              class="detail-item-action"
+              @click="editUserNickname">
+              <el-tooltip
+                effect="dark"
+                :content="editTooltip"
+                placement="top">
+                <i class="el-icon-edit-outline"></i>
+              </el-tooltip>
+            </span>
+          </td>
+        </tr>
+        <tr>
+          <td>
             <i class="el-icon-star-off"></i>
             <span class="detail-label">评分</span>
           </td>
@@ -235,6 +254,15 @@
             <span>{{ course.pubDate }}</span>
           </td>
         </tr>
+        <tr v-if="!isTeacher">
+          <td>
+            <i class="el-icon-connection"></i>
+            <span class="detail-label">加入时间</span>
+          </td>
+          <td>
+            <span>{{ userCourse.enrollDate }}</span>
+          </td>
+        </tr>
       </table>
     </el-card>
     <el-dialog
@@ -329,6 +357,24 @@
         </el-button>
       </span>
     </el-dialog>
+    <el-dialog
+      :visible.sync="nicknameDialog"
+      title="修改身份"
+      width="450px">
+      <el-input
+        v-model="editNickname"
+        :disabled="userCourseLoading">
+      </el-input>
+      <span slot="footer">
+        <el-button
+          type="primary"
+          icon="el-icon-check"
+          :loading="userCourseLoading"
+          @click="handleEditUserCourseNickname">
+          完成
+        </el-button>
+      </span>
+    </el-dialog>
     <el-divider>
       <i class="el-icon-user">
       </i>&emsp;课程成员（{{ totalMembers }}）
@@ -379,7 +425,9 @@ import {
   closeCourse,
   findCourseRatingsByCourseId,
   findUserCourseRating,
-  updateCourseRating
+  updateCourseRating,
+  findUserCourse,
+  updateUserCourseNickname
 } from '@/api/course'
 
 export default {
@@ -388,6 +436,7 @@ export default {
       courseLoading: true,
       membersLoading: true,
       ratingLoading: false,
+      userCourseLoading: false,
       course: {
         id: '',
         name: '',
@@ -419,6 +468,12 @@ export default {
       ratingsQuery: {
         page: 0,
         size: 10
+      },
+      nicknameDialog: false,
+      editNickname: '',
+      userCourse: {
+        userNickname: '',
+        enrollDate: ''
       },
       editProp: '',
       editContent: '',
@@ -510,6 +565,7 @@ export default {
         .then(() => this.editDialog = false)
         .finally(() => this.refreshCourse())
     },
+    // 刷新课程评价
     refreshCourseRatings() {
       findCourseRatingsByCourseId(this.courseId, this.ratingsQuery)
         .then(response => {
@@ -551,11 +607,41 @@ export default {
         })
         .catch(() => this.$message.error('评价失败'))
         .finally(() => this.ratingLoading = false)
+    },
+    // 刷新用户课程
+    refreshUserCourse() {
+      this.userCourseLoading = true
+      findUserCourse(this.courseId)
+        .then(response => {
+          const data = response.data
+          this.userCourse = data.payload
+        })
+        .catch(() => this.$message.error('无法获取用户课程信息'))
+        .finally(() => this.userCourseLoading = false)
+    },
+    // 修改用户身份
+    editUserNickname() {
+      this.nicknameDialog = true
+      this.editNickname = this.userCourse.userNickname
+    },
+    // 提交修改用户课程身份
+    handleEditUserCourseNickname() {
+      this.userCourseLoading = true
+      this.userCourse.userNickname = this.editNickname
+      updateUserCourseNickname(this.courseId, this.userCourse)
+        .then(() => {
+          this.nicknameDialog = false
+          this.$message.success('修改成功')
+          this.refreshUserCourse()
+        })
+        .catch(() => this.$message.error('修改失败'))
+        .finally(() => this.userCourseLoading = false)
     }
   },
   mounted() {
     this.refreshCourse()
     this.refreshCourseMembers()
+    this.refreshUserCourse()
   }
 }
 </script>

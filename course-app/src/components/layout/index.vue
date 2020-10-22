@@ -37,6 +37,7 @@
       <el-drawer
         title="修改个人资料"
         :visible.sync="edit"
+        size="360px"
         :show-close="false"
         @open="handleOpen"
         :before-close="handleClose">

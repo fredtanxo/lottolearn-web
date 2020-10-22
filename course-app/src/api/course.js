@@ -28,8 +28,8 @@ export const updateCourse = (courseId, params) => {
   return Network.put(`/course/id/${courseId}`, params)
 }
 
-export const joinCourse = code => {
-  return Network.put(`/course/invitation/${code}`)
+export const joinCourse = params => {
+  return Network.put(`/course/invitation`, params)
 }
 
 export const findJoinCourseResult = id => {
@@ -70,4 +70,12 @@ export const findUserCourseRating = courseId => {
 
 export const updateCourseRating = (courseId, params) => {
   return Network.put(`/course/rating/${courseId}`, params)
+}
+
+export const findUserCourse = courseId => {
+  return Network.get(`/course/user/${courseId}`)
+}
+
+export const updateUserCourseNickname = (courseId, params) => {
+  return Network.put(`/course/user/${courseId}`, params)
 }

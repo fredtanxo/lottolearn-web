@@ -2,7 +2,12 @@
   <div>
     <el-divider>
       <i class="el-icon-chat-line-square"></i>
-      {{ `讨论（${total}）` }}
+      <span style="padding: 0 10px;">讨论</span>
+      <el-badge
+        type="primary"
+        :max="99"
+        :value="total">
+      </el-badge>
     </el-divider>
     <div v-loading="discussionsLoading">
       <div class="join-discussion">

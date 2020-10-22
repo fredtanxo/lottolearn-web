@@ -76,6 +76,7 @@
             <el-dialog
               title="添加学期"
               :visible.sync="dialog"
+              width="520px"
               append-to-body
               destroy-on-close>
               <el-form
@@ -147,13 +148,23 @@
           :model="formJoin"
           :rules="formJoinRules">
           <el-form-item
-            prop="code"
+            prop="invitationCode"
             label="课程邀请码">
             <el-input
-              v-model.trim="formJoin.code"
+              v-model.trim="formJoin.invitationCode"
               autofocus
+              clearable
               @keydown.enter.native.prevent="handleJoinCourse"
               placeholder="请输入课程邀请码">
+            </el-input>
+          </el-form-item>
+          <el-form-item
+            prop="userNickname"
+            label="身份（课程内使用的昵称）">
+            <el-input
+              v-model.trim="formJoin.userNickname"
+              clearable
+              placeholder="默认身份为当前用户名">
             </el-input>
           </el-form-item>
         </el-form>
@@ -202,6 +213,8 @@
 </template>
 
 <script>
+import { mapGetters } from 'vuex'
+
 import {
   addCourse,
   joinCourse,
@@ -244,7 +257,8 @@ export default {
         range: [new Date(), new Date()]
       },
       formJoin: {
-        code: ''
+        invitationCode: '',
+        userNickname: ''
       },
       formAddRules: {
         name: [
@@ -276,12 +290,13 @@ export default {
         ]
       },
       formJoinRules: {
-        code: [
+        invitationCode: [
           { required: true, message: '必须提供邀请码才能加入', trigger: 'blur'}
         ]
       }
     }
   },
+  computed: mapGetters(['nickname']),
   methods: {
     // 刷新学期
     refreshTerm() {
@@ -375,7 +390,7 @@ export default {
       this.$refs.formJoin.validate(valid => {
         if (valid) {
           this.loadingJoin = true
-          joinCourse(this.formJoin.code)
+          joinCourse(this.formJoin)
             .then(response => {
               const data = response.data
               this.handleQueryJoinCourse(data, 0)
@@ -384,6 +399,7 @@ export default {
               this.$message.error('加入失败')
               this.loadingJoin = false
             })
+          localStorage.setItem('join_nickname', this.formJoin.userNickname)
         }
       })
     },
@@ -410,6 +426,9 @@ export default {
           .catch(() => this.$message.error('请重试'))
       }, timeout * 1000)
     }
+  },
+  mounted() {
+    this.formJoin.userNickname = localStorage.getItem('join_nickname') || this.nickname
   }
 }
 </script>
