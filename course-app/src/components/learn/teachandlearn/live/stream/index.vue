@@ -8,41 +8,71 @@
       class="stream-controller"
       :style="`visibility: ${this.initialized ? 'visible' : 'hidden'}`">
       <!-- 麦克风 -->
-      <el-button
+      <el-tooltip
         v-if="audio"
-        type="primary"
-        icon="el-icon-microphone"
-        @click="disableMicrophone">
-      </el-button>
-      <el-button
+        effect="dark"
+        content="关闭麦克风"
+        placement="top">
+        <el-button
+          type="primary"
+          icon="el-icon-microphone"
+          @click="disableMicrophone">
+        </el-button>
+      </el-tooltip>
+      <el-tooltip
         v-else
-        icon="el-icon-microphone"
-        @click="enableMicrophone">
-      </el-button>
+        effect="dark"
+        content="开启麦克风"
+        placement="top">
+        <el-button
+          icon="el-icon-microphone"
+          @click="enableMicrophone">
+        </el-button>
+      </el-tooltip>
       <!-- 摄像头 -->
-      <el-button
+      <el-tooltip
         v-if="video"
-        type="primary"
-        icon="el-icon-video-camera"
-        @click="disableCamera">
-      </el-button>
-      <el-button
+        effect="dark"
+        content="关闭摄像头"
+        placement="top">
+        <el-button
+          type="primary"
+          icon="el-icon-video-camera"
+          @click="disableCamera">
+        </el-button>
+      </el-tooltip>
+      <el-tooltip
         v-else
-        icon="el-icon-video-camera"
-        @click="enableCamera">
-      </el-button>
+        effect="dark"
+        content="开启摄像头"
+        placement="top">
+        <el-button
+          icon="el-icon-video-camera"
+          @click="enableCamera">
+        </el-button>
+      </el-tooltip>
       <!-- 屏幕共享 -->
-      <el-button
+      <el-tooltip
         v-if="screen"
-        type="primary"
-        icon="el-icon-data-line"
-        @click="disableShareScreen">
-      </el-button>
-      <el-button
+        effect="dark"
+        content="关闭屏幕共享"
+        placement="top">
+        <el-button
+          type="primary"
+          icon="el-icon-data-line"
+          @click="disableShareScreen">
+        </el-button>
+      </el-tooltip>
+      <el-tooltip
         v-else
-        icon="el-icon-data-line"
-        @click="enableShareScreen">
-      </el-button>
+        effect="dark"
+        content="开启屏幕共享"
+        placement="top">
+        <el-button
+          icon="el-icon-data-line"
+          @click="enableShareScreen">
+        </el-button>
+      </el-tooltip>
     </el-button-group>
     <div class="stream-video-wrapper">
       <div

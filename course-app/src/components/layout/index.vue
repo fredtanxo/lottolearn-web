@@ -59,6 +59,7 @@
             prop="avatar">
             <el-input
               v-model="editProfileForm.avatar"
+              :disabled="drawerSubmiting"
               placeholder="请粘贴图片链接"
               autocomplete="off"
               clearable>
@@ -69,6 +70,7 @@
             prop="nickname">
             <el-input
               v-model="editProfileForm.nickname"
+              :disabled="drawerSubmiting"
               placeholder="请输入昵称"
               autocomplete="off"
               clearable>
@@ -79,6 +81,7 @@
             prop="gender">
             <el-radio-group
               v-model="editProfileForm.gender"
+              :disabled="drawerSubmiting"
               size="medium">
               <el-radio-button :label="false">女</el-radio-button>
               <el-radio-button :label="true">男</el-radio-button>
@@ -89,6 +92,7 @@
             prop="description">
             <el-input
               v-model="editProfileForm.description"
+              :disabled="drawerSubmiting"
               placeholder="介绍一下自己"
               autocomplete="off"
               clearable>
@@ -153,8 +157,8 @@
                   prop="username">
                   <el-input
                     v-model.trim="editUsernamePasswordForm.username"
+                    :disabled="dialogSubmiting"
                     placeholder="用户名"
-                    autofocus
                     clearable>
                   </el-input>
                 </el-form-item>
@@ -164,6 +168,7 @@
                   prop="oldPassword">
                   <el-input
                     v-model.trim="editUsernamePasswordForm.oldPassword"
+                    :disabled="dialogSubmiting"
                     placeholder="旧密码"
                     type="password"
                     clearable>
@@ -174,6 +179,7 @@
                   prop="newPassword">
                   <el-input
                     v-model.trim="editUsernamePasswordForm.newPassword"
+                    :disabled="dialogSubmiting"
                     placeholder="新密码"
                     type="password"
                     clearable>
@@ -186,6 +192,7 @@
                 <el-button
                   type="primary"
                   icon="el-icon-check"
+                  :disabled="dialogLoading"
                   :loading="dialogSubmiting"
                   @click="handleChangeUsernameAndPassword">
                   完成
@@ -197,8 +204,9 @@
             <el-button
               type="primary"
               icon="el-icon-check"
-              @click="handleSubmitEditProfile"
-              :loading="drawerSubmiting">
+              :disabled="drawerLoading"
+              :loading="drawerSubmiting"
+              @click="handleSubmitEditProfile">
               完成
             </el-button>
           </div>
@@ -296,7 +304,8 @@ export default {
         path: '/',
         domain: 'lottolearn.com'
       })
-      sessionStorage.removeItem(config.accessTokenKey)
+      sessionStorage.clear()
+      localStorage.clear()
       logout().finally(() => location.href = '/')
     },
     handleEditProfile() {
@@ -309,8 +318,7 @@ export default {
           editUser(this.userId, this.editProfileForm)
             .then(() => {
               this.$message.success('修改成功')
-              this.handleOpen()
-              this.updateUser()
+              this.edit = false
             })
             .catch(() => this.$message.error('修改失败'))
             .finally(() => this.drawerSubmiting = false)

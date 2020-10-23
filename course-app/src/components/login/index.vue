@@ -15,8 +15,9 @@
         <el-form-item
           prop="username">
           <el-input
+            ref="usernameInputRef"
             v-model="login.username"
-            autofocus
+            :disabled="loginLoading"
             prefix-icon="el-icon-user"
             placeholder="请输入用户名"
             @keydown.enter.native="requestLogin">
@@ -27,6 +28,7 @@
           <el-input
             type="password"
             v-model="login.password"
+            :disabled="loginLoading"
             prefix-icon="el-icon-lock"
             placeholder="请输入密码"
             @keydown.enter.native="requestLogin">
@@ -106,6 +108,7 @@ export default {
                   // expires: new Date(Number.parseInt(json['access_token_expiration']))
                 })
                 sessionStorage.setItem(config.accessTokenKey, json['access_token'])
+                localStorage.clear()
                 this.$router.push('/')
               } else if (response.status === 401) {
                 // 前端防止恶意登录
@@ -132,9 +135,10 @@ export default {
     }
   },
   mounted() {
-    // if (Cookies.get(config.accessTokenKey)) {
-    //   this.$router.push('/')
-    // }
+    this.$nextTick(() => this.$refs.usernameInputRef.focus())
+    if (Cookies.get(config.accessTokenKey)) {
+      this.$router.push('/')
+    }
     if (location.search.indexOf('failure=true') !== -1) {
       this.$message.error('授权登录失败')
     }
@@ -142,7 +146,7 @@ export default {
 }
 </script>
 
-<style>
+<style scoped>
 .login-container {
   width: 365px;
   display: flex;

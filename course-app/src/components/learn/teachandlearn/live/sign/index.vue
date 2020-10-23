@@ -1,7 +1,8 @@
 <template>
   <el-dialog
-    :visible="courseSignDialog"
-    @close="() => setSignDialog(false)">
+    :visible="dialog"
+    width="600px"
+    @close="beforeClose">
     <el-page-header
       slot="title"
       v-if="details"
@@ -111,11 +112,11 @@ import { findCourseSigns, findCourseSignRecord } from '@/api/course'
 
 export default {
   props: {
-    courseSignDialog: Boolean,
     setSignDialog: Function
   },
   data() {
     return {
+      dialog: false,
       params: {
         page: 0,
         size: 10,
@@ -190,10 +191,15 @@ export default {
       })
       .catch(() => this.$message.error('下载失败'))
       .finally(() => this.downloading = false)
+    },
+    beforeClose() {
+      this.dialog = false
+      this.setSignDialog(false)
     }
   },
   mounted() {
     this.refreshSignData()
+    this.$nextTick(() => this.dialog = true)
   }
 }
 </script>
@@ -203,6 +209,5 @@ export default {
   float: left;
   font-size: 18px;
   margin-left: 5px;
-  line-height: 60px;
 }
 </style>

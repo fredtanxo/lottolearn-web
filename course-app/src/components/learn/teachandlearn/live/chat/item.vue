@@ -7,7 +7,7 @@
       <div :class="{ 'chat-nickname': true, 'chat-nickname-me': me }">
         {{ nickname }}
       </div>
-      <pre class="chat-content">{{ content }}</pre>
+      <p class="chat-content">{{ content }}</p>
     </div>
   </div>
 </template>

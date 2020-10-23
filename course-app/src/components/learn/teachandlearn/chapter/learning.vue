@@ -17,7 +17,7 @@
     <div
       v-else
       style="text-align: center; padding: 10vh 0 0;">
-      <div>章节没有视频资源</div>
+      <span class="empty-tip">本章节没有视频资源</span>
     </div>
     <div class="chapter-resource">
       <el-button

@@ -1,248 +1,178 @@
 <template>
-  <div class="dialog-container">
-    <div class="dialog-body">
-      <div
-        class="select-mode"
-        v-if="step === 0">
+  <el-dialog
+    title="创建课程"
+    :visible.sync="dialog"
+    class="add-dialog"
+    @close="beforeClose">
+    <el-form
+      ref="formAdd"
+      v-if="step === 0"
+      :model="formAdd"
+      label-width="80px"
+      :rules="formAddRules">
+      <el-form-item
+        label="课程名称"
+        prop="name">
+        <el-input
+          ref="nameInputRef"
+          v-model="formAdd.name"
+          :disabled="loadingAdd"
+          placeholder="请填写课程名称">
+        </el-input>
+      </el-form-item>
+      <el-form-item label="权限">
+        <el-radio-group
+          v-model="formAdd.visibility"
+          size="medium"
+          :disabled="loadingAdd">
+          <el-radio-button :label="false">私密</el-radio-button>
+          <el-radio-button :label="true">公开</el-radio-button>
+        </el-radio-group>
+        <span style="padding: 0 8px;">
+          <el-tooltip
+            effect="dark"
+            content="公开课程意味着其他人可以从「发现」页面加入本课程"
+            placement="top">
+            <i class="el-icon-question"></i>
+          </el-tooltip>
+        </span>
+      </el-form-item>
+      <el-form-item label="课程描述">
+        <el-input
+          type="textarea"
+          v-model="formAdd.description"
+          :disabled="loadingAdd"
+          placeholder="描述一下课程内容">
+        </el-input>
+      </el-form-item>
+      <el-form-item
+        label="学期"
+        prop="termId">
+        <el-select
+          v-model="formAdd.termId"
+          :disabled="loadingAdd"
+          placeholder="请选择学期">
+          <el-option
+            v-for="term in terms"
+            :key="term.id"
+            :label="`${term.name} [${term.termStart} - ${term.termEnd}]`"
+            :value="term.id">
+          </el-option>
+        </el-select>
         <el-button
-          icon="el-icon-document-add"
-          @click="handleNextStep('add')">
-          创建课程
+          icon="el-icon-plus"
+          style="margin-left: 10px;"
+          @click="termDialog = true">
+          添加
         </el-button>
-        <el-divider direction="vertical"></el-divider>
-        <el-button
-          icon="el-icon-link"
-          @click="handleNextStep('join')">
-          加入课程
-        </el-button>
-      </div>
-      <div
-        class="info-form"
-        v-if="step === 1 && mode === 'add'">
-        <el-form
-          ref="formAdd"
-          :model="formAdd"
-          label-width="80px"
-          :rules="formAddRules">
-          <el-form-item
-            label="课程名称"
-            prop="name">
-            <el-input
-              v-model="formAdd.name"
-              autofocus
-              placeholder="请填写课程名称">
-            </el-input>
-          </el-form-item>
-          <el-form-item label="权限">
-            <el-radio-group
-              v-model="formAdd.visibility"
-              size="medium">
-              <el-radio-button :label="false">私密</el-radio-button>
-              <el-radio-button :label="true">公开</el-radio-button>
-            </el-radio-group>
-            <span style="padding: 0 8px;">
-              <el-tooltip
-                effect="dark"
-                content="公开课程意味着其他人可以从「发现」页面加入本课程"
-                placement="top">
-                <i class="el-icon-question"></i>
-              </el-tooltip>
-            </span>
-          </el-form-item>
-          <el-form-item label="课程描述">
-            <el-input
-              type="textarea"
-              v-model="formAdd.description"
-              placeholder="描述一下课程内容">
-            </el-input>
-          </el-form-item>
-          <el-form-item
-            label="学期"
-            prop="termId">
-            <el-select v-model="formAdd.termId" placeholder="请选择学期">
-              <el-option
-                v-for="term in terms"
-                :key="term.id"
-                :label="`${term.name} [${term.termStart} - ${term.termEnd}]`"
-                :value="term.id">
-              </el-option>
-            </el-select>
+        <el-dialog
+          title="添加学期"
+          :visible.sync="termDialog"
+          class="add-dialog"
+          append-to-body
+          destroy-on-close>
+          <el-form
+            ref="formTerm"
+            :model="formTerm"
+            label-width="80px"
+            :rules="formTermRules">
+            <el-form-item
+              label="学期名称"
+              prop="name">
+              <el-input
+                v-model="formTerm.name"
+                placeholder="请填写学期名称">
+              </el-input>
+            </el-form-item>
+            <el-form-item
+              label="学期时段"
+              prop="range">
+              <el-date-picker
+                v-model="formTerm.range"
+                type="datetimerange"
+                range-separator="至"
+                start-placeholder="开始日期"
+                end-placeholder="结束日期">
+              </el-date-picker>
+            </el-form-item>
+          </el-form>
+          <span
+            slot="footer"
+            v-if="step === 0">
             <el-button
-              icon="el-icon-plus"
-              style="margin-left: 10px;"
-              @click="dialog = true">
+              type="primary"
+              icon="el-icon-check"
+              @click="handleAddTerm"
+              :loading="loadingTerm">
               添加
             </el-button>
-            <el-dialog
-              title="添加学期"
-              :visible.sync="dialog"
-              width="520px"
-              append-to-body
-              destroy-on-close>
-              <el-form
-                ref="formTerm"
-                :model="formTerm"
-                label-width="80px"
-                :rules="formTermRules">
-                <el-form-item
-                  label="学期名称"
-                  prop="name">
-                  <el-input
-                    v-model="formTerm.name"
-                    placeholder="请填写学期名称">
-                  </el-input>
-                </el-form-item>
-                <el-form-item
-                  label="学期时段"
-                  prop="range">
-                  <el-date-picker
-                    v-model="formTerm.range"
-                    type="datetimerange"
-                    range-separator="至"
-                    start-placeholder="开始日期"
-                    end-placeholder="结束日期">
-                  </el-date-picker>
-                </el-form-item>
-                <div
-                  class="dialog-foot"
-                  v-if="step === 1">
-                  <el-button
-                    type="primary"
-                    icon="el-icon-check"
-                    @click="handleAddTerm"
-                    :loading="loadingTerm">
-                    添加
-                  </el-button>
-                </div>
-              </el-form>
-            </el-dialog>
-          </el-form-item>
-          <el-form-item
-            prop="credit"
-            label="学分">
-            <el-input-number
-              v-model="formAdd.credit"
-              :min="0"
-              :max="10"
-              label="请填写学分">
-            </el-input-number>
-          </el-form-item>
-        </el-form>
-        <div
-          class="dialog-foot"
-          v-if="step === 1 && mode === 'add'">
-          <el-button
-            type="primary"
-            icon="el-icon-check"
-            @click="handleAddCourse"
-            :loading="loadingAdd">
-            创建
-          </el-button>
-        </div>
-      </div>
-      <div
-        class="info-form"
-        v-if="step === 1 && mode === 'join'">
-        <el-form
-          ref="formJoin"
-          :model="formJoin"
-          :rules="formJoinRules">
-          <el-form-item
-            prop="invitationCode"
-            label="课程邀请码">
-            <el-input
-              v-model.trim="formJoin.invitationCode"
-              autofocus
-              clearable
-              @keydown.enter.native.prevent="handleJoinCourse"
-              placeholder="请输入课程邀请码">
-            </el-input>
-          </el-form-item>
-          <el-form-item
-            prop="userNickname"
-            label="身份（课程内使用的昵称）">
-            <el-input
-              v-model.trim="formJoin.userNickname"
-              clearable
-              placeholder="默认身份为当前用户名">
-            </el-input>
-          </el-form-item>
-        </el-form>
-        <div
-          class="dialog-foot"
-          v-if="step === 1 && mode === 'join'">
-          <el-button
-            type="primary"
-            icon="el-icon-connection"
-            @click="handleJoinCourse"
-            :loading="loadingJoin">
-            加入
-          </el-button>
-        </div>
-      </div>
-      <div
-        class="add-result"
-        v-if="step === 2">
-        <i
-          class="el-icon-success"
-          style="color: #67C23A; font-size: 3em;"
-          v-if="result.success">
-        </i>
-        <i
-          class="el-icon-error"
-          style="color: #F56C6C; font-size: 3em;"
-          v-else>
-        </i>
-        <div class="add-info">
-          {{ result.message }}
-          <div v-if="mode === 'add'">
-            课程邀请码：
-            <span class="add-code">{{ result.invitationCode }}</span>
-          </div>
-          <div v-if="result.success">
-            <el-link
-              type="primary"
-              :href="`/learn/${this.result.courseId}`">
-              进入课堂
-            </el-link>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
+          </span>
+        </el-dialog>
+      </el-form-item>
+      <el-form-item
+        prop="credit"
+        label="学分">
+        <el-input-number
+          v-model="formAdd.credit"
+          :min="0"
+          :max="10"
+          label="请填写学分">
+        </el-input-number>
+      </el-form-item>
+    </el-form>
+    <result
+      v-else
+      :result="result"
+      mode="add"
+      :callback="handleLearn">
+    </result>
+    <span
+      slot="footer"
+      v-if="step === 0">
+      <el-button
+        type="primary"
+        icon="el-icon-check"
+        @click="handleAddCourse"
+        :loading="loadingAdd">
+        创建
+      </el-button>
+    </span>
+  </el-dialog>
 </template>
 
 <script>
-import { mapGetters } from 'vuex'
+import Result from './result'
 
 import {
   addCourse,
-  joinCourse,
   findAddCourseResult,
-  findJoinCourseResult,
   findAllTerms,
   addTerm
 } from '@/api/course'
 import { convertDate } from '@/utils'
 
 export default {
+  components: {
+    Result
+  },
   props: {
+    addDialog: Boolean,
+    setAddDialog: Function,
     callback: Function
   },
   data() {
     return {
       dialog: false,
+      termDialog: false,
       timer: null,
       loadingAdd: false,
       loadingTerm: false,
-      loadingJoin: false,
       step: 0,
       mode: '',
       terms: [],
       result: {
         success: false,
         message: '',
-        invitationCode: '',
         courseId: ''
       },
       formAdd: {
@@ -255,10 +185,6 @@ export default {
       formTerm: {
         name: '',
         range: [new Date(), new Date()]
-      },
-      formJoin: {
-        invitationCode: '',
-        userNickname: ''
       },
       formAddRules: {
         name: [
@@ -288,18 +214,23 @@ export default {
             trigger: 'blur'
           }
         ]
-      },
-      formJoinRules: {
-        invitationCode: [
-          { required: true, message: '必须提供邀请码才能加入', trigger: 'blur'}
-        ]
       }
     }
   },
-  computed: mapGetters(['nickname']),
+  watch: {
+    addDialog(val) {
+      this.$nextTick(() => this.dialog = val)
+    },
+    dialog(val) {
+      if (val) {
+        this.refreshTerms()
+        this.$nextTick(() => this.$refs.nameInputRef.focus())
+      }
+    }
+  },
   methods: {
     // 刷新学期
-    refreshTerm() {
+    refreshTerms() {
       findAllTerms()
         .then(response => {
           const data = response.data
@@ -322,8 +253,8 @@ export default {
             if (data.code === 200) {
               this.$message.success('添加成功')
               this.loadingAdd = false
-              this.dialog = false
-              this.refreshTerm()
+              this.termDialog = false
+              this.refreshTerms()
             } else {
               this.$message.error(data.message)
             }
@@ -331,18 +262,10 @@ export default {
           .catch(() => this.$message.error('添加失败'))
           .finally(() => {
             this.loadingTerm = false
-            this.refreshTerm()
+            this.refreshTerms()
           })
         }
       })
-    },
-    // 下一步
-    handleNextStep(mode) {
-      this.step++
-      this.mode = mode
-      if (mode === 'add') {
-        this.refreshTerm()
-      }
     },
     // 添加课程
     handleAddCourse() {
@@ -385,71 +308,30 @@ export default {
           .catch(err => console.error(err))
       }, timeout * 1000)
     },
-    // 邀请码加入课程
-    handleJoinCourse() {
-      this.$refs.formJoin.validate(valid => {
-        if (valid) {
-          this.loadingJoin = true
-          joinCourse(this.formJoin)
-            .then(response => {
-              const data = response.data
-              this.handleQueryJoinCourse(data, 0)
-            })
-            .catch(() => {
-              this.$message.error('加入失败')
-              this.loadingJoin = false
-            })
-          localStorage.setItem('join_nickname', this.formJoin.userNickname)
-        }
-      })
+    beforeClose() {
+      this.setAddDialog(false)
+      setTimeout(() => {
+        this.$refs.formAdd.resetFields()
+        this.step = 0
+        this.result = {}
+      }, 300)
     },
-    // 查询加入课程状态
-    handleQueryJoinCourse(id, timeout) {
-      this.timer = setTimeout(() => {
-        findJoinCourseResult(id)
-          .then(response => {
-            const data = response.data
-            if (data) {
-              clearTimeout(this.timer)
-              this.result = {
-                success: data.code === 200,
-                message: data.message,
-                courseId: data.courseId
-              }
-              this.step++
-              this.callback()
-              this.loadingJoin = false
-            } else {
-              this.handleQueryJoinCourse(id, timeout >= 3 ? 3 : timeout + 1)
-            }
-          })
-          .catch(() => this.$message.error('请重试'))
-      }, timeout * 1000)
+    handleLearn(path) {
+      this.setAddDialog(false)
+      setTimeout(() => {
+        this.$router.push(path)
+      }, 300)
     }
-  },
-  mounted() {
-    this.formJoin.userNickname = localStorage.getItem('join_nickname') || this.nickname
   }
 }
 </script>
 
-<style>
-.select-mode {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  margin: 10vh 0;
-}
-.dialog-body {
-  margin: 20px 0;
-}
-.dialog-foot {
-  text-align: center;
-}
-.add-result {
-  text-align: center;
-  font-size: 2em;
-  line-height: 2;
+<style scoped>
+.add-dialog >>> .el-dialog {
+  position: fixed;
+  width: 520px;
+  right: 20px;
+  bottom: 20px;
 }
 .add-code {
   font-family: monospace;

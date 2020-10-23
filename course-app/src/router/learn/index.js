@@ -7,19 +7,15 @@ import Choose from '@/components/learn/teachandlearn/chapter/choose'
 import Learning from '@/components/learn/teachandlearn/chapter/learning'
 import Live from '@/components/learn/teachandlearn/live'
 import Library from '@/components/learn/library'
-import Details from '@/components/learn/details'
+import Members from '@/components/learn/members'
+import Settings from '@/components/learn/settings'
 
 export default {
   path: '/learn/:courseId',
   component: LearnLayout,
   name: 'learn',
-  redirect: '/learn/:courseId/announcement',
+  redirect: '/learn/:courseId/teach-and-learn',
   children: [
-    {
-      path: 'announcement',
-      component: Announcement,
-      name: 'announcement'
-    },
     {
       path: 'teach-and-learn',
       component: TeachAndLearn,
@@ -52,14 +48,24 @@ export default {
       ]
     },
     {
+      path: 'announcement',
+      component: Announcement,
+      name: 'announcement'
+    },
+    {
       path: 'library',
       component: Library,
       name: 'library'
     },
     {
-      path: 'details',
-      component: Details,
-      name: 'details'
+      path: 'members',
+      component: Members,
+      name: 'members'
+    },
+    {
+      path: 'settings',
+      component: Settings,
+      name: 'settings'
     }
   ]
 }

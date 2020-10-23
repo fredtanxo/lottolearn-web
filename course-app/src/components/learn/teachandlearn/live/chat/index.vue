@@ -97,19 +97,39 @@
             </div>
           </template>
         </div>
-        <el-button
-          slot="reference"
-          icon="el-icon-user">
-          {{ onlineMembers.length + '/' + members.size }}
-        </el-button>
+        <span slot="reference">
+          <el-tooltip
+            effect="dark"
+            content="我在房间内的昵称"
+            placement="top">
+            <el-tag
+              size="small"
+              effect="plain"
+              style="margin-right: 1em;">
+              {{ currentNickname }}
+            </el-tag>
+          </el-tooltip>
+          <el-tooltip
+            effect="dark"
+            content="房间内成员"
+            placement="top">
+            <el-button
+              icon="el-icon-user">
+              {{ onlineMembers.length + '/' + members.size }}
+            </el-button>
+          </el-tooltip>
+        </span>
       </el-popover>
       <el-dialog
         :visible.sync="editNickname"
         :close-on-click-modal="false"
-        width="250px">    
+        title="修改房间内昵称"
+        width="250px"
+        top="10px"
+        class="nickname-dialog">    
         <el-input
+          ref="nicknameInputRef"
           v-model="currentNickname"
-          autofocus
           clearable
           @keydown.enter.native.prevent="handleChangeNickname">
         </el-input>
@@ -571,15 +591,15 @@ export default {
     changeMyNickname(nickname) {
       this.currentNickname = nickname
       this.editNickname = true
+      this.$nextTick(() => this.$refs.nicknameInputRef.focus())
     },
     handleChangeNickname() {
       this.sendMessage('MEMBER_NICKNAME_CHANGED', this.currentNickname)
       this.editNickname = false
-      this.$message.success(`已更名为：${this.currentNickname}`)
       this.cacheNickname()
     },
     getCachedNicknameOrDefault() {
-      return localStorage.getItem(`live_nickname:${this.courseId}`) || this.user.nickname
+      return localStorage.getItem(`live_nickname:${this.courseId}`) || this.members.get(this.user.id).userNickname || this.user.nickname
     },
     cacheNickname() {
       return localStorage.setItem(`live_nickname:${this.courseId}`, this.currentNickname)
@@ -631,8 +651,8 @@ export default {
 }
 </script>
 
-<style>
-.dialog-card .el-card__header {
+<style scoped>
+.dialog-card >>> .el-card__header {
   height: 50px;
   padding: 0;
   cursor: pointer;
@@ -640,7 +660,7 @@ export default {
   background: #fff;
   width: 298px;
 }
-.dialog-card .el-card__body {
+.dialog-card >>> .el-card__body {
   padding: 0;
   margin-top: 50px;
 }
@@ -672,9 +692,6 @@ export default {
 }
 .sign-notification {
   cursor: pointer;
-}
-.chat-content {
-  font-size: 14px;
 }
 
 .course-members-wrapper {
@@ -708,5 +725,10 @@ export default {
 .member-change-name{
   float: right;
   right: 8px;
+}
+
+.nickname-dialog >>> .el-dialog {
+  position: fixed;
+  right: 10px;
 }
 </style>

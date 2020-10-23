@@ -6,15 +6,15 @@
           v-model="query.teacher"
           size="medium"
           @change="queryCourseList">
-          <el-radio-button label="">
+          <el-radio-button :label="null">
             <i class="el-icon-receiving"></i>
             所有
           </el-radio-button>
-          <el-radio-button label="false">
+          <el-radio-button :label="false">
             <i class="el-icon-notebook-2"></i>
             我学的
           </el-radio-button>
-          <el-radio-button label="true">
+          <el-radio-button :label="true">
             <i class="el-icon-mic"></i>
             我教的
           </el-radio-button>
@@ -27,15 +27,15 @@
           v-model="query.status"
           size="medium"
           @change="queryCourseList">
-          <el-radio-button label="0">
+          <el-radio-button :label="0">
             <i class="el-icon-more-outline"></i>
             未开始
           </el-radio-button>
-          <el-radio-button label="1">
+          <el-radio-button :label="1">
             <i class="el-icon-date"></i>
             进行中
           </el-radio-button>
-          <el-radio-button label="2">
+          <el-radio-button :label="2">
             <i class="el-icon-finished"></i>
             已结束
           </el-radio-button>
@@ -43,13 +43,28 @@
       </el-col>
     </el-row>
     <el-row
-      style="min-height: 200px;"
+      style="min-height: calc(100vh - 195px);"
       :gutter="25"
       v-loading="loading">
       <div
         class="no-course"
         v-if="!loading && (!list || list.length == 0)">
-        没有课程
+        <span
+          v-if="query.status === 0"
+          class="empty-tip">
+          没有未开始的课程
+        </span>
+        <span
+          v-if="query.status === 1"
+          class="empty-tip">
+          没有进行中的课程<br />
+          点击右下方按钮创建/加入课程
+        </span>
+        <span
+          v-if="query.status === 2"
+          class="empty-tip">
+          没有已结束的课程
+        </span>
       </div>
       <el-col
         style="padding-top: 20px;"
@@ -63,7 +78,7 @@
           <el-card shadow="hover">
             <div
               slot="header"
-              style="overflow: hidden; text-overflow: ellipsis;">
+              class="course-name">
               <span style="white-space: nowrap; font-weight: bold;">
                 {{ course.name }}
               </span>
@@ -95,43 +110,66 @@
         hide-on-single-page>
       </el-pagination>
     </div>
-
-    <el-button
-      class="add-button"
-      type="primary"
-      icon="el-icon-plus"
-      circle
-      @click="handleAddCourse">
-    </el-button>
-    <el-dialog
-      title="新课程"
-      :visible.sync="dialog"
-      destroy-on-close>
-      <add-course :callback="afterAddCourseCallback"></add-course>
-    </el-dialog>
+    <el-tooltip
+      effect="dark"
+      content="创建课程"
+      placement="left">
+      <el-button
+        class="add-button"
+        type="primary"
+        icon="el-icon-plus"
+        circle
+        @click="addDialog = true">
+      </el-button>
+    </el-tooltip>
+    <el-tooltip
+      effect="dark"
+      content="加入课程"
+      placement="left">
+      <el-button
+        class="join-button"
+        type="primary"
+        icon="el-icon-link"
+        circle
+        @click="joinDialog = true">
+      </el-button>
+    </el-tooltip>
+    <join-course
+      :joinDialog="joinDialog"
+      :setJoinDialog="setJoinDialog"
+      :callback="afterAddCourseCallback">
+    </join-course>
+    <add-course
+      :addDialog="addDialog"
+      :setAddDialog="setAddDialog"
+      :callback="afterAddCourseCallback">
+    </add-course>
   </div>
 </template>
 
 <script>
 import AddCourse from './add'
+import JoinCourse from './join'
 
 import * as CourseApi from '@/api/course'
 
 export default {
   components: {
-    AddCourse
+    AddCourse,
+    JoinCourse
   },
   data() {
     return {
-      dialog: false,
+      addDialog: false,
+      joinDialog: false,
       loading: true,
       list: [],
       total: 0,
       query: {
         page: 0,
         size: 12,
-        teacher: '',
-        status: '1'
+        teacher: null,
+        status: 1
       }
     }
   },
@@ -159,6 +197,12 @@ export default {
     },
     afterAddCourseCallback() {
       this.queryCourseList()
+    },
+    setAddDialog(flag) {
+      this.addDialog = flag
+    },
+    setJoinDialog(flag) {
+      this.joinDialog = flag
     }
   },
   mounted() {
@@ -172,7 +216,7 @@ export default {
 }
 </script>
 
-<style>
+<style scoped>
 .course-detail-item {
   padding: 5px;
 }
@@ -180,44 +224,27 @@ export default {
   margin-left: 10px;
 }
 .no-course {
-  height: 200px;
+  height: calc(100vh - 155px);
   display: flex;
   justify-content: center;
   align-items: center;
 }
 
-.course-info {
-  padding: 14px;
-}
 .course-name {
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
 }
-.teacher-info {
-  margin-top: 10px;
-  margin-bottom: 5px;
-}
-.el-avatar {
-  vertical-align: middle;
-}
-.teacher-name {
-  font-size: 12px;
-  margin-left: 10px;
-  vertical-align: middle;
+.join-button {
+  position: fixed;
+  right: 30px;
+  bottom: 75px;
+  z-index: 2001;
 }
 .add-button {
   position: fixed;
-  right: 25px;
-  bottom: 50px;
-}
-.image-slot {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  width: 100%;
-  height: 100%;
-  background: #f5f7fa;
-  color: #909399;
+  right: 30px;
+  bottom: 20px;
+  z-index: 2001;
 }
 </style>

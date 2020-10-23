@@ -86,11 +86,16 @@
           {{ discussionsLoading ? '加载中' : '更多' }}
         </el-link>
         <el-link
-          v-else
+          v-else-if="discussions.length > 0"
           type="primary"
           disabled>
           已全部加载
         </el-link>
+        <span
+          v-else
+          class="empty-tip">
+          讨论区空空如也
+        </span>
       </div>
     </div>
   </div>
@@ -178,7 +183,7 @@ export default {
                 color: '#0bbd87'
               })
               this.total++
-              this.discussForm.content = ''
+              this.$refs.discussForm.resetFields()
             })
             .catch(() => this.$message.error('发布失败'))
             .finally(() => this.posting = false)

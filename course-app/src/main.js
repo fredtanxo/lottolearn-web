@@ -42,7 +42,7 @@ router.beforeEach((to, from, next) => {
 // 确保Vue实例加载前已经获得access_token并存入sessionStorage
 new Promise((resolve, reject) => {
   const accessToken = Cookies.get(config.accessTokenKey)
-  sessionStorage.removeItem(config.accessTokenKey)
+  sessionStorage.clear()
   if (accessToken) {
     sessionStorage.setItem(config.accessTokenKey, accessToken)
     resolve()

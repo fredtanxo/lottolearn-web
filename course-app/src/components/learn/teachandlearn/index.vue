@@ -2,7 +2,8 @@
   <div>
     <el-tabs
       v-model="activeTab"
-      @tab-click="handleTabChange">
+      @tab-click="handleTabChange"
+      class="learn-tabs">
       <el-tab-pane name="chapter">
         <el-badge
           is-dot
@@ -86,12 +87,12 @@ export default {
 }
 </script>
 
-<style>
-.el-badge__content.is-fixed.is-dot {
+<style scoped>
+.learn-tabs >>> .el-badge__content.is-fixed.is-dot {
   right: 0 !important;
   top: 8px !important;
 }
-.el-tabs__nav-scroll {
+.learn-tabs >>> .el-tabs__nav-scroll {
   display: flex;
   justify-content: center;
 }

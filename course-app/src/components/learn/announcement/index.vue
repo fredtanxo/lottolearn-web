@@ -1,16 +1,18 @@
 <template>
   <div>
-    <div
-      v-if="!loading && announcements.length === 0"
-      style="text-align: center; margin: 10vh 0;">
-      没有公告
-    </div>
-    <el-row :gutter="20" v-loading="loading" style="min-height: 50px;">
+    <el-row
+      :gutter="20"
+      v-loading="loading"
+      style="min-height: calc(100vh - 155px);">
+      <div
+        v-if="!loading && announcements.length === 0"
+        class="no-announcement empty-tip">
+        课程还没有发布公告
+      </div>
       <el-col
         style="padding-bottom: 20px"
         v-for="announcement in announcements"
-        :key="announcement.id"
-      >
+        :key="announcement.id">
         <el-card shadow="hover">
           <div
             style="font-size: 1.5em; font-weight: bold; text-align: center;"
@@ -25,19 +27,24 @@
         </el-card>
       </el-col>
     </el-row>
-    <el-button
-      class="add-button"
-      :style="`display: ${this.isTeacher ? 'block' : 'none'};`"
-      type="primary"
-      icon="el-icon-plus"
-      circle
-      @click="handleAddAnnouncement">
-    </el-button>
+    <el-tooltip
+      effect="dark"
+      content="发布公告"
+      placement="left">
+      <el-button
+        class="add-button"
+        :style="`display: ${this.isTeacher ? 'block' : 'none'};`"
+        type="primary"
+        icon="el-icon-plus"
+        circle
+        @click="handleAddAnnouncement">
+      </el-button>
+    </el-tooltip>
     <el-dialog
       title="新公告"
       :visible.sync="dialog"
       :close-on-click-modal="false"
-      destroy-on-close>
+      width="520px">
       <el-form
         ref="formAnnouncement"
         :model="announcementAdd"
@@ -46,8 +53,9 @@
           label="标题"
           prop="title">
           <el-input
+            ref="titleInputRef"
             v-model="announcementAdd.title"
-            autofocus
+            :disabled="submiting"
             placeholder="请输入标题">
           </el-input>
         </el-form-item>
@@ -58,11 +66,12 @@
             type="textarea"
             :rows="8"
             v-model="announcementAdd.content"
+            :disabled="submiting"
             placeholder="请输入内容">
           </el-input>
         </el-form-item>
       </el-form>
-      <div style="padding-top: 10px; text-align: center;">
+      <span slot="footer">
         <el-button
           type="primary"
           icon="el-icon-check"
@@ -70,7 +79,7 @@
           @click="handleAnnouncementSubmit">
           发布
         </el-button>
-      </div>
+      </span>
     </el-dialog>
     <div
       v-if="more"
@@ -102,7 +111,7 @@ export default {
       more: false,
       query: {
         page: 0,
-        size: 1
+        size: 3
       },
       announcementAdd: {
         title: '',
@@ -134,6 +143,10 @@ export default {
     },
     handleAddAnnouncement() {
       this.dialog = true
+      this.$nextTick(() => {
+        this.$refs.formAnnouncement.resetFields()
+        this.$refs.titleInputRef.focus()
+      })
     },
     handleAnnouncementSubmit() {
       this.$refs.formAnnouncement.validate(valid => {
@@ -146,9 +159,8 @@ export default {
           .then(() => {
             this.dialog = false
             this.$message.success('发布成功')
-            if (this.query.page > 0) {
-              this.query.page++
-            }
+            this.query.page = 0
+            this.announcements = []
             this.queryCourseAnnouncements()
             this.$refs.formAnnouncement.resetFields()
           })
@@ -168,17 +180,24 @@ export default {
 }
 </script>
 
-<style>
+<style scoped>
 .publish-info {
   font-size: 12px;
   color: rgb(128, 128, 128)
 }
 .add-button {
   position: fixed;
-  right: 25px;
-  bottom: 50px;
+  right: 30px;
+  bottom: 20px;
+  z-index: 2001;
 }
 .course-details {
   margin-bottom: 20px;
+}
+.no-announcement {
+  height: calc(100vh - 155px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 </style>

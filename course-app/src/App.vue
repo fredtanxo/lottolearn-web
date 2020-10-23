@@ -23,6 +23,7 @@ export default {
 </script>
 
 <style>
+/* 样式修复 */
 body {
   font-family: "Helvetica Neue",Helvetica,"PingFang SC","Hiragino Sans GB","Microsoft YaHei","微软雅黑",Arial,sans-serif;
   margin: 0;
@@ -39,9 +40,23 @@ span:focus {
   box-shadow: none !important;
 }
 button, input, select, textarea {
-    font-family: inherit;
-    font-size: inherit;
-    line-height: inherit;
-    color: inherit;
+  font-family: inherit;
+  font-size: inherit;
+  line-height: inherit;
+  color: inherit;
+}
+
+/* 全局自定义样式 */
+.el-avatar {
+  vertical-align: middle;
+}
+.el-menu {
+  border-right: none;
+}
+.empty-tip {
+  font-size: 14px;
+  line-height: 60px;
+  color: #909399;
+  text-align: center;
 }
 </style>

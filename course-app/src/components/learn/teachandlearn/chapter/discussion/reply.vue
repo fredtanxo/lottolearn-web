@@ -145,6 +145,7 @@ export default {
           this.posting = true
           postChapterDiscussion(this.query.courseId, this.chapterId, this.replyForm)
             .then(response => {
+              this.$refs.replyForm.resetFields()
               this.replyForm.content = `@${this.replyForm.replyNickname}: `
               const data = response.data
               this.replies.unshift({
@@ -192,7 +193,7 @@ export default {
 @import './item.css';
 
 .discussion-replies {
-  background: #efefef;
+  background: #f5f7fa;
   margin: 10px 0;
   padding: 15px 20px;
   border-radius: 4px;

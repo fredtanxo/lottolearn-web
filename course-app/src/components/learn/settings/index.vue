@@ -4,15 +4,16 @@
       <div slot="header">
         <el-popconfirm
           v-if="isTeacher"
-          confirmButtonText="关闭"
+          confirmButtonText="结束"
           icon="el-icon-info"
           iconColor="red"
-          title="确定关闭课程？关闭课程后其他人将无法加入该课程，此操作无法撤销！"
+          title="确定结束课程？结束课程后其他人将无法加入该课程！"
           @onConfirm="handleCloseCourse">
           <el-link
             slot="reference"
             type="danger">
-            关闭课程
+            <i class="el-icon-close"></i>
+            结束课程
           </el-link>
         </el-popconfirm>
         <el-popconfirm
@@ -25,6 +26,7 @@
           <el-link
             type="danger"
             slot="reference">
+            <i class="el-icon-close"></i>
             退出课程
           </el-link>
         </el-popconfirm>
@@ -269,7 +271,10 @@
       :visible.sync="editDialog"
       title="修改"
       width="450px">
-      <el-input v-model="editContent"></el-input>
+      <el-input
+        ref="editInputRef"
+        v-model="editContent">
+      </el-input>
       <span slot="footer">
         <el-button
           type="primary"
@@ -362,6 +367,7 @@
       title="修改身份"
       width="450px">
       <el-input
+        ref="nicknameInputRef"
         v-model="editNickname"
         :disabled="userCourseLoading">
       </el-input>
@@ -375,41 +381,7 @@
         </el-button>
       </span>
     </el-dialog>
-    <el-divider>
-      <i class="el-icon-user">
-      </i>&emsp;课程成员（{{ totalMembers }}）
-    </el-divider>
-    <div
-      class="members-container"
-      v-loading="membersLoading">
-      <el-tooltip
-        v-for="member in members"
-        :key="member.id"
-        effect="dark"
-        :content="member.userNickname + (member.isTeacher ? '（教师）' : '')"
-        placement="top">
-        <el-card
-          shadow="hover"
-          class="member-card">
-          <div class="member-info-wrapper">
-            <el-avatar :src="member.userAvatar"></el-avatar>
-              <span class="member-name">
-                {{ member.userNickname + (member.isTeacher ? '（教师）' : '') }}
-              </span>
-          </div>
-        </el-card>
-      </el-tooltip>
-    </div>
-    <div
-      v-if="members.length !== totalMembers"
-      style="margin: 20px 0; text-align: center;">
-      <el-link
-        type="primary"
-        :disabled="membersLoading"
-        @click="handleMoreMembers">
-        更多
-      </el-link>
-    </div>
+    
   </div>
 </template>
 
@@ -419,7 +391,6 @@ import { mapGetters } from 'vuex'
 import {
   findCourseById,
   findFullCourseById,
-  findCourseMembers,
   updateCourse,
   quitCourse,
   closeCourse,
@@ -434,7 +405,6 @@ export default {
   data() {
     return {
       courseLoading: true,
-      membersLoading: true,
       ratingLoading: false,
       userCourseLoading: false,
       course: {
@@ -450,12 +420,6 @@ export default {
         termName: '',
         credit: '',
         rating: 0
-      },
-      totalMembers: 0,
-      members: [],
-      membersQuery: {
-        page: 0,
-        size: 16
       },
       editDialog: false,
       ratingDialog: false,
@@ -501,23 +465,6 @@ export default {
       .catch(() => this.$message.error('无法获取课程信息'))
       .finally(() => this.courseLoading = false)
     },
-    // 刷新课程成员列表
-    refreshCourseMembers() {
-      this.membersLoading = true
-      findCourseMembers(this.courseId, this.membersQuery)
-        .then(response => {
-          const data = response.data
-          this.totalMembers = data.payload.total
-          this.members = this.members.concat(data.payload.data)
-        })
-        .catch(() => this.$message.error('无法获取课程成员列表'))
-        .finally(() => this.membersLoading = false)
-    },
-    // 课程成员列表分页
-    handleMoreMembers() {
-      this.membersQuery.page++
-      this.refreshCourseMembers()
-    },
     // 退出课程
     handleQuitCourse() {
       quitCourse(this.courseId)
@@ -527,10 +474,10 @@ export default {
         })
         .catch(() => this.$message.error('退出失败'))
     },
-    // 关闭课程
+    // 结束课程
     handleCloseCourse() {
       closeCourse(this.courseId)
-        .then(() => this.$message.success('关闭成功'))
+        .then(() => this.$message.success('课程已被结束'))
         .finally(() => this.refreshCourse())
     },
     // 复制到剪切板
@@ -551,6 +498,7 @@ export default {
       this.editDialog = true
       this.editProp = prop
       this.editContent = oldVal
+      this.$nextTick(() => this.$refs.editInputRef.focus())
     },
     // 提交课程信息修改
     handleUpdateCourseFromInput() {
@@ -623,6 +571,7 @@ export default {
     editUserNickname() {
       this.nicknameDialog = true
       this.editNickname = this.userCourse.userNickname
+      this.$nextTick(() => this.$refs.nicknameInputRef.focus())
     },
     // 提交修改用户课程身份
     handleEditUserCourseNickname() {
@@ -640,7 +589,6 @@ export default {
   },
   mounted() {
     this.refreshCourse()
-    this.refreshCourseMembers()
     this.refreshUserCourse()
   }
 }
@@ -654,7 +602,7 @@ export default {
   transition: all 0.2s linear;
 }
 .details > tr:hover {
-  background-color: #f5f5f5;
+  background-color: #f5f7fa;
 }
 .details > tr > td {
   border-bottom: 1px solid #eee;
@@ -675,27 +623,6 @@ export default {
   color: #909399;
   font-size: 12px;
   padding-right: 1em;
-}
-
-.members-container {
-  min-height: 100px;
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: space-around;
-}
-.member-card {
-  display: inline-block;
-  width: 220px;
-  margin-right: 10px;
-  margin-bottom: 15px;
-}
-.member-info-wrapper {
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-}
-.member-name {
-  margin-left: 15px;
 }
 
 .detail-item-action {

@@ -26,6 +26,9 @@ const actions = {
         commit(UPDATE_COURSE, data.payload)
       })
   },
+  setCourse({ commit }, course) {
+    commit(UPDATE_COURSE, course)
+  },
   updateLearning({ commit }, learning) {
     commit(UPDATE_LEARNING, learning)
   },

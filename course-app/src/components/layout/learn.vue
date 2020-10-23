@@ -4,27 +4,34 @@
       router
       :default-active="activeMenu"
       slot="menu">
-      <el-menu-item :index="`/learn/${courseId}/announcement`">
-        <i class="el-icon-guide"></i>
-        <span>公告</span>
-      </el-menu-item>
       <el-menu-item :index="`/learn/${courseId}/teach-and-learn`">
         <i class="el-icon-reading"></i>
         <span>教学</span>
       </el-menu-item>
-      <el-menu-item v-if="isTeacher" :index="`/learn/${courseId}/library`">
-        <i class="el-icon-video-play"></i>
-        <span>资源库</span>
+      <el-menu-item :index="`/learn/${courseId}/announcement`">
+        <i class="el-icon-guide"></i>
+        <span>公告</span>
       </el-menu-item>
-      <el-menu-item :index="`/learn/${courseId}/details`">
-        <i class="el-icon-postcard"></i>
-        <span>详情</span>
+      <el-menu-item
+        v-if="isTeacher"
+        :index="`/learn/${courseId}/library`">
+        <i class="el-icon-video-play"></i>
+        <span>资源</span>
+      </el-menu-item>
+      <el-menu-item :index="`/learn/${courseId}/members`">
+        <i class="el-icon-user"></i>
+        <span>成员</span>
+      </el-menu-item>
+      <el-menu-item :index="`/learn/${courseId}/settings`">
+        <i class="el-icon-setting"></i>
+        <span>设置</span>
       </el-menu-item>
     </el-menu>
     <el-page-header
       @back="goBack"
       :content="courseName"
-      slot="logo">
+      slot="logo"
+      class="learn-header">
     </el-page-header>
   </basic-framework>
 </template>
@@ -58,12 +65,13 @@ export default {
   }
   ,
   methods: {
-    ...mapActions(['updateCourse']),
+    ...mapActions(['updateCourse', 'setCourse']),
     goBack() {
       if (this.learning) {
         this.$router.back()
       } else {
         this.$router.push('/course')
+        this.setCourse({})
       }
     }
   },
@@ -74,8 +82,8 @@ export default {
 }
 </script>
 
-<style>
-.el-page-header {
+<style scoped>
+.learn-header {
   float: left;
   line-height: 60px;
 }

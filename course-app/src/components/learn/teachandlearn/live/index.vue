@@ -5,7 +5,9 @@
     <div
       class="no-live"
       v-if="!live">
-      <div style="margin: 30vh 0 35px;">
+      <div
+        class="empty-tip"
+        style="margin: 30vh 0 35px;">
         课程还没有开始直播
       </div>
       <el-button
@@ -31,8 +33,8 @@
       </el-button>
       <sign
         v-if="isTeacher && courseSignDialog"
-        :setSignDialog="setSignDialog"
-        :courseSignDialog="courseSignDialog">
+        :courseSignDialog="courseSignDialog"
+        :setSignDialog="setSignDialog">
       </sign>
     </div>
     <stream v-if="live" :roomId="live" />
@@ -110,7 +112,7 @@ export default {
       }, timeout * 1000)
     },
     setSignDialog() {
-      this.courseSignDialog = false
+      setTimeout(() => this.courseSignDialog = false, 300)
     }
   },
   mounted() {

@@ -1,13 +1,13 @@
 <template>
   <div>
     <el-row
-      style="min-height: 200px;"
+      style="min-height: calc(100vh - 195px);"
       :gutter="10"
       v-loading="loading">
       <div
-        class="no-chapter"
+        class="no-chapter empty-tip"
         v-if="!loading && (!chapters || chapters.length == 0)">
-        没有章节
+        课程还没有发布章节
       </div>
       <el-col
         :sm="24"
@@ -44,19 +44,23 @@
         hide-on-single-page>
       </el-pagination>
     </div>
-    <el-button
-      class="add-button"
-      :style="`display: ${this.isTeacher ? 'block' : 'none'};`"
-      type="primary"
-      icon="el-icon-plus"
-      circle
-      @click="handleAddChapter">
-    </el-button>
+    <el-tooltip
+      effect="dark"
+      content="新增章节"
+      placement="left">
+      <el-button
+        class="add-button"
+        :style="`display: ${this.isTeacher ? 'block' : 'none'};`"
+        type="primary"
+        icon="el-icon-plus"
+        circle
+        @click="handleAddChapter">
+      </el-button>
+    </el-tooltip>
     <el-dialog
       title="新章节"
       :visible.sync="dialog"
-      :close-on-click-modal="false"
-      destroy-on-close>
+      class="add-dialog">
       <el-form
         ref="formChapter"
         label-width="80px"
@@ -66,8 +70,10 @@
           label="章节名称"
           prop="name">
           <el-input
+            ref="chapterInputRef"
             v-model="chapterAdd.name"
-            autofocus
+            clearable
+            :disabled="submiting"
             placeholder="请输入章节名称">
           </el-input>
         </el-form-item>
@@ -76,12 +82,13 @@
           prop="lasts">
           <el-input-number
             v-model="chapterAdd.lasts"
+            :disabled="submiting"
             label="请输入章节学习用时">
           </el-input-number>
           分钟
         </el-form-item>
       </el-form>
-      <div style="padding-top: 10px; text-align: center;">
+      <span slot="footer">
         <el-button
           type="primary"
           icon="el-icon-check"
@@ -89,7 +96,7 @@
           @click="handleChapterSubmit">
           发布
         </el-button>
-      </div>
+      </span>
     </el-dialog>
   </div>
 </template>
@@ -149,6 +156,10 @@ export default {
     },
     handleAddChapter() {
       this.dialog = true
+      this.$nextTick(() => {
+        this.$refs.formChapter.resetFields()
+        this.$refs.chapterInputRef.focus()
+      })
     },
     handleChapterSubmit() {
       this.$refs.formChapter.validate(valid => {
@@ -177,7 +188,7 @@ export default {
 }
 </script>
 
-<style>
+<style scoped>
 .chapter-item-wrapper {
   margin-bottom: 20px;
   cursor: pointer;
@@ -189,9 +200,22 @@ export default {
   margin-left: 10px;
 }
 .no-chapter {
-  height: 200px;
+  height: calc(100vh - 155px);
   display: flex;
   justify-content: center;
   align-items: center;
+}
+
+.add-button {
+  position: fixed;
+  right: 30px;
+  bottom: 20px;
+  z-index: 2001;
+}
+.add-dialog >>> .el-dialog {
+  position: fixed;
+  width: 520px;
+  right: 20px;
+  bottom: 20px;
 }
 </style>
