@@ -25,7 +25,7 @@
         prop="userNickname"
         label="身份（课程内使用的昵称）">
         <el-input
-          v-model.trim="formJoin.userNickname"
+          v-model="formJoin.userNickname"
           clearable
           :disabled="loadingJoin"
           placeholder="默认身份为当前用户名">
@@ -97,7 +97,9 @@ export default {
     },
     dialog(val) {
       if (val) {
-        this.formJoin.userNickname = localStorage.getItem('join_nickname') || this.nickname
+        this.step = 0
+        this.result = {}
+        this.formJoin = { userNickname: localStorage.getItem('join_nickname') || this.nickname }
         this.$nextTick(() => this.$refs.codeInputRef.focus())
       }
     }
@@ -146,11 +148,9 @@ export default {
     },
     beforeClose() {
       this.setJoinDialog(false)
-      setTimeout(() => {
+      if (this.$refs.formJoin) {
         this.$refs.formJoin.resetFields()
-        this.step = 0
-        this.result = {}
-      }, 300)
+      }
     },
     handleLearn(path) {
       this.setJoinDialog(false)

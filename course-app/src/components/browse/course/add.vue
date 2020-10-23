@@ -37,7 +37,9 @@
           </el-tooltip>
         </span>
       </el-form-item>
-      <el-form-item label="课程描述">
+      <el-form-item
+        label="课程简介"
+        prop="description">
         <el-input
           type="textarea"
           v-model="formAdd.description"
@@ -180,7 +182,7 @@ export default {
         visibility: false,
         description: '',
         termId: '',
-        credit: 0
+        credit: 1
       },
       formTerm: {
         name: '',
@@ -223,6 +225,9 @@ export default {
     },
     dialog(val) {
       if (val) {
+        this.step = 0
+        this.result = {}
+        this.formAdd = { visibility: false, credit: 1 }
         this.refreshTerms()
         this.$nextTick(() => this.$refs.nameInputRef.focus())
       }
@@ -310,11 +315,9 @@ export default {
     },
     beforeClose() {
       this.setAddDialog(false)
-      setTimeout(() => {
+      if (this.$refs.formAdd) {
         this.$refs.formAdd.resetFields()
-        this.step = 0
-        this.result = {}
-      }, 300)
+      }
     },
     handleLearn(path) {
       this.setAddDialog(false)
