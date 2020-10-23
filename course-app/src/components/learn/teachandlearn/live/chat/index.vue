@@ -342,6 +342,9 @@ export default {
         case 'MEMBER_NICKNAME_CHANGED':
           this.handleMemberNicknameChanged(msg)
           break
+        case 'MEMBER_JOIN':
+          this.handleMemberJoinMessage(msg)
+          break
         case 'CHAT':
           this.handleChatMessage(msg)
           break
@@ -386,6 +389,14 @@ export default {
       const member = this.members.get(message.userId)
       member.userNickname = message.content
       this.onlineMembers = this.onlineMembers.slice()
+    },
+    // 处理新增成员消息
+    handleMemberJoinMessage(message) {
+      const content = JSON.parse(message.content)
+      this.members.set(message.userId, {
+        ...content,
+        oldNickname: content.userNickname
+      })
     },
     // 处理聊天消息
     handleChatMessage(message) {
@@ -620,7 +631,7 @@ export default {
     this.chatRef.addEventListener('scroll', this.handleScroll)
 
     // 先获取成员列表
-    findCourseMembers(this.courseId)
+    findCourseMembers(this.courseId, { all: true })
       .then(response => {
         const data = response.data
         const members = data.payload.data
